@@ -9,6 +9,8 @@ import { RolesModule } from './roles/roles.module';
 import config from './config/config';
 import { MailService } from './services/mail.service';
 import { OcrModule } from './ocr/ocr.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -31,6 +33,9 @@ import { OcrModule } from './ocr/ocr.module';
         uri: config.get('database.connectionString'),
       }),
       inject: [ConfigService],
+    }),ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'upload'), // Adjusted to point to the root-level uploads folder
+      serveRoot: '/upload', // URL prefix to access the images
     }),
     AuthModule,
     RolesModule,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   HttpStatus,
@@ -8,14 +9,13 @@ import {
 } from '@nestjs/common';
 import { SignupDto } from './dtos/signup.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
-import mongoose, { Model } from 'mongoose';
+import { User,UserSchema } from './schemas/user.schema';
+import mongoose, { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './schemas/refresh-token.schema';
 import { v4 as uuidv4 } from 'uuid';
-import { nanoid } from 'nanoid';
 import { OTP } from './schemas/o-t-p.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
@@ -297,6 +297,25 @@ export class AuthService {
   async findUserByEmail(email: string): Promise<User | null> {
     return this.UserModel.findOne({ email }).exec();
   }
+
+
+  async findUserById(userId: string) {
+    // Validate the ID format before querying the database
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new NotFoundException('Invalid user ID format');
+    }
+
+    const user = await this.UserModel.findById(userId).exec();
+
+    if (!user) {
+
+      return user
+     
+    }
+
+    return user;
+  }
+
 
   async findOrCreateUser(profile: any) {
     const email = profile.emails[0].value;

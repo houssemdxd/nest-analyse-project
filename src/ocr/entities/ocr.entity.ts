@@ -1,5 +1,16 @@
 // schemas/ocr-data.schema.ts
-import { Schema } from 'mongoose';
+import { Schema, Document, Types } from 'mongoose';
 
-// Define an empty schema with `strict: false` to allow dynamic fields
-export const OCRDataSchema = new Schema({}, { strict: false });
+// Define an interface for OCRData with a dynamic structure
+export interface OCRData extends Document {
+  userId: Types.ObjectId; // Reference to the User document
+  // Other dynamic fields can go here
+}
+
+// Define the schema with `strict: false` for flexibility
+export const OCRDataSchema = new Schema(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
+  },
+  { strict: false } // Allow dynamic fields
+);
