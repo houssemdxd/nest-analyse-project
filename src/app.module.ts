@@ -11,6 +11,7 @@ import { MailService } from './services/mail.service';
 import { OcrModule } from './ocr/ocr.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { RecommadationModule } from './recommadation/recommadation.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { join } from 'path';
     AuthModule,
     RolesModule,
     OcrModule,
+    RecommadationModule,
 
   ],
   controllers: [AppController],

@@ -63,7 +63,7 @@ export class FileUploadController {
       const extractedData = await this.analyzeImage(file.filename); // Implement your OCR logic here
       console.log(extractedData)
       extractedData["image_name"] = file.filename
-      this.ocrService.saveExtractedData(extractedData,"67364c4b41045bd30dfa1929");
+      this.ocrService.saveExtractedData(extractedData,"67374bbcb7311370893b6a3e");
 
       return { message: 'File uploaded successfully and saved', filePath: file.path };
     } catch (error) {

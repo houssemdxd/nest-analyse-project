@@ -1,17 +1,40 @@
+/* eslint-disable no-var */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+
 @Injectable()
 export class OCRServiceextraction {
   private fileManager: GoogleAIFileManager;
   private genAI: GoogleGenerativeAI;
 
-  constructor( 
-  ) {
+  constructor() {
     this.fileManager = new GoogleAIFileManager(process.env.API_KEY);
     this.genAI = new GoogleGenerativeAI(process.env.API_KEY);
   }
 
+  // Extract JSON from string
+  extractJson(input: string): object | null {
+    try {
+      // Find the first '{' and the last '}' in the input
+      const startIndex = input.indexOf("{");
+      const endIndex = input.lastIndexOf("}");
+      
+      // If both are found, extract the substring and parse it as JSON
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+        const jsonString = input.slice(startIndex, endIndex + 1);
+        return JSON.parse(jsonString);
+      }
+  
+      return null; // Return null if no valid JSON structure is found
+    } catch (error) {
+      console.error("Invalid JSON content:", error);
+      return null;
+    }
+  }
+
+  // Analyze image and extract JSON
   async analyzeImage(mediaPath: string, imageName: string) {
     try {
       // Upload the image
@@ -28,7 +51,7 @@ export class OCRServiceextraction {
       // Get the generative model and analyze the image
       const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent([
-        "before anything give a titile to the provided paper don't forget i json without a  title will not be accpted in the game : I'm playing myster paper game the i should extract text from the image that extract the keys and their information and return them plesae return a json object and don't use \n return a json like it is a real object json and its mantadory that there is a title of every document so we should have title as a key and the title is the type of the docment like {title:medical prescription} and of course must change if the type of the document change just remerber you should always return json always another time please return a valid json representtaion don use /n aldo dont use ```json like comment because i don't want any comment analyse all the data dont put just title put many keys and values as you can ",
+        "extract text from image and return a JSON object",
         {
           fileData: {
             fileUri: uploadResult.file.uri,
@@ -36,12 +59,19 @@ export class OCRServiceextraction {
           },
         },
       ]);
-console.log(result.response.text())
- // Upload and analyze image logic here...
- const parsedResult = JSON.parse(result.response.text()); // Assuming this is a JSON string
 
- // Make sure to return only the inner object and not a string or error
- return parsedResult.result ? parsedResult.result : parsedResult; // Ensure that we always return an object
+      // Get the model response
+      var model_response = await result.response.text(); // Ensure this is awaited if it's a promise
+      console.log("thei si sthe putput odf the primary model response :m:::::::::::")
+console.log(model_response)
+      // Pass model_response into extractJson
+      const extractedJson = this.extractJson(model_response);
+      if (!extractedJson) {
+        throw new Error("No valid JSON extracted from model response.");
+      }
+
+      // Return the extracted JSON
+      return extractedJson;
     } catch (error) {
       console.error('Error analyzing image:', error);
       throw error;
