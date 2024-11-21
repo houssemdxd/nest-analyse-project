@@ -51,7 +51,7 @@ export class OCRServiceextraction {
       // Get the generative model and analyze the image
       const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent([
-        "extract text from image and return a JSON object",
+        "extract text from image and return a JSON object and provide a title for every document the key title is mantadory you should only retuen json like this {title:ftfty,....}",
         {
           fileData: {
             fileUri: uploadResult.file.uri,

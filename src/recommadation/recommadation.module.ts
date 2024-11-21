@@ -4,9 +4,11 @@ import { RecommadationService } from './recommadation.service';
 import { GoogleAIController } from './recommadation.controller';
 import { Recommadation, RecommadationSchema } from './entities/recommadation.entity';
 import { User, UserSchema } from '../auth/schemas/user.schema';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [
+  imports: [    ScheduleModule.forRoot(), // Enable scheduler
+
     MongooseModule.forFeature([
       { name: Recommadation.name, schema: RecommadationSchema },
       { name: User.name, schema: UserSchema },

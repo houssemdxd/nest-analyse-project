@@ -316,6 +316,16 @@ export class AuthService {
     return user;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const users = await this.UserModel.find().exec();
+      return users;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch users');
+    }
+  }
+
+
 
   async findOrCreateUser(profile: any) {
     const email = profile.emails[0].value;

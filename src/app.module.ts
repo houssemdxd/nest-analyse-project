@@ -12,6 +12,7 @@ import { OcrModule } from './ocr/ocr.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { RecommadationModule } from './recommadation/recommadation.module';
+import { LocationModule } from './location/location.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { RecommadationModule } from './recommadation/recommadation.module';
     RolesModule,
     OcrModule,
     RecommadationModule,
+    LocationModule,
 
   ],
   controllers: [AppController],

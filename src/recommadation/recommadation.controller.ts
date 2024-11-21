@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import { Controller, Post, Body, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get, NotFoundException } from '@nestjs/common';
 import { RecommadationService } from './recommadation.service';
 import { CreateRecommadationDto } from './dto/create-recommadation.dto';
 
@@ -58,4 +58,39 @@ export class GoogleAIController {
       throw new InternalServerErrorException(error.message);
     }
   }
+  @Get('generate-all')
+  async generateRecommendations(): Promise<any> {
+    try {
+      return await this.googleAIService.generateRecommendationForAllUsers();
+    } catch (error) {
+      console.error('Error generating recommendations for all users:', error.message);
+      throw new InternalServerErrorException('Error generating recommendations for all users');
+    }
+  }
+
+
+
+
+
+
+
+
+  @Post('recommendations')
+  async getRecommendationsByUser(@Body('userId') userId: string) {
+    try {
+      console.log("get recommandation function ")
+      const recommendations = await this.googleAIService.getRecommadationsByUser(userId);
+      if (!recommendations.length) {
+        throw new NotFoundException('No recommendations found for this user');
+      }
+      return { success: true, data: recommendations };
+    } catch (error) {
+      console.error('Error fetching recommendations:', error.message);
+      throw new InternalServerErrorException('Failed to fetch recommendations');
+    }
+  }
+
+
+
+
 }

@@ -8,7 +8,8 @@ import * as fs from 'fs';
 import { OCRService } from './ocr.service';
 import {OCRServiceextraction} from './ocrextraction'
 import { CreateOcrDto } from './dto/create-ocr.dto';
-
+import { ApiOperation, ApiRequestTimeoutResponse, ApiResponse, ApiTags, ApiUnsupportedMediaTypeResponse } from '@nestjs/swagger';
+@ApiTags('OCR')
 @Controller('files')
 export class FileUploadController {
   constructor(private readonly ocrService: OCRService,
@@ -19,6 +20,8 @@ export class FileUploadController {
 
   oldImageName : string =""
   
+
+
   @Get()
   async analyzeImage(imageName:string) {
     try {
@@ -31,7 +34,13 @@ export class FileUploadController {
     }
   }
 
-
+@ApiResponse({ status: 201, description: 'file uploaded successfully .'})
+@ApiResponse({ status: 403, description: 'Forbidden.'})
+@ApiRequestTimeoutResponse()
+@ApiOperation({ summary: 'Upload a file' })
+  @ApiUnsupportedMediaTypeResponse({
+    description: 'The server does not support the media type of the request payload.',
+  })
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
@@ -53,17 +62,22 @@ export class FileUploadController {
       },
     }),
   }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File ,  @Body('userId') userId: string
+ ) {
     try {
       if (!file) {
         throw new Error('No file uploaded');
       }
-      
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       console.log('File info:', file.filename); // Log file details for debugging
+      console.log('User ID:', userId); // Log user ID for debugging
+
       const extractedData = await this.analyzeImage(file.filename); // Implement your OCR logic here
       console.log(extractedData)
       extractedData["image_name"] = file.filename
-      this.ocrService.saveExtractedData(extractedData,"67374bbcb7311370893b6a3e");
+      await this.ocrService.saveExtractedData(extractedData, userId);
 
       return { message: 'File uploaded successfully and saved', filePath: file.path };
     } catch (error) {

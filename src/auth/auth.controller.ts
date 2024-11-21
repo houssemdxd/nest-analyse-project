@@ -15,23 +15,47 @@ import { GoogleAuthGuard } from './google-auth.guard';
 import { userInfo } from 'os';
 import { log } from 'console';
 import {UpdateUserIndoDto} from './dtos/update-userInfo.dto'
+import { ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 
 interface AuthRequest extends Request {
   user?: any; // Define `user` based on what GoogleAuthGuard attaches
 }
+
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
+  @ApiResponse({ status: 201, description: 'User account created successfully .'})
+@ApiResponse({ status: 403, description: 'Forbidden.'})
   async signUp(@Body() signupData: SignupDto) {
     return this.authService.signup(signupData);
   }
 
   @Post('login')
+  @ApiUnauthorizedResponse({
+    description: 'Invalid credentials or unauthorized access.',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 401,
+          message: 'Unauthorized',
+          error: 'Invalid email or password',
+        },
+      },
+    },
+  })
+    @ApiResponse({ status: 200, description: 'login successfully .'})
+  @ApiResponse({ status: 403, description: 'Forbidden.'})
   async login(@Body() credentials: LoginDto) {
     return this.authService.login(credentials);
+  }
+  
+  @Get('users')
+  async getAllUsers() {
+    return this.authService.getAllUsers();
   }
 
   @Post('refresh')
