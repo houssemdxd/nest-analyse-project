@@ -100,14 +100,14 @@ export class RecommadationService {
     const recommendations = [];
     for (const user of users) {
       try {
-        console.log(`Generating recommendation for user: ${user.name} (ID: ${user._id})`);
+        console.log(`Generating recommendation for user:  (ID: ${user._id})`);
         const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
         // Add delay before making the request to the API (e.g., 2 seconds)
         await sleep(2000);  // Adjust this delay as needed
 
         // Generate a personalized prompt for each user (you can customize this prompt)
-        const prompt = `Generate arecommendation for user that contain only 5 words: ${user.name}`;
+        const prompt = `Generate a health care and life style recommendation  1 munite reading`;
         const content = await this.generateContent(prompt);
 
         // Save the generated recommendation in the database
@@ -154,8 +154,8 @@ export class RecommadationService {
   }
 
 
-
-  @Cron('*/5 * * * *')
+  //@Cron('*/5 * * * * *')
+  @Cron('0 0 * * *')
   async generateRecommendationsJob(): Promise<void> {
     console.log('Running scheduled job: Generating recommendations for all users...');
     try {

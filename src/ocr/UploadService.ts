@@ -92,7 +92,9 @@ export class FileUploadController {
 
   @Post('getAllImages')
   async forgotPassword(@Body() forgotPasswordDto: CreateOcrDto) {
+    console.log("get images invocked")
     return  this.ocrService.findAllByUserId(forgotPasswordDto.id);
+    console.log("")
   }
 
 

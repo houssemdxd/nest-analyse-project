@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import { Controller, Post, Body, InternalServerErrorException, Get, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get} from '@nestjs/common';
 import { RecommadationService } from './recommadation.service';
 import { CreateRecommadationDto } from './dto/create-recommadation.dto';
 
@@ -80,9 +80,10 @@ export class GoogleAIController {
     try {
       console.log("get recommandation function ")
       const recommendations = await this.googleAIService.getRecommadationsByUser(userId);
-      if (!recommendations.length) {
+      /*if (!recommendations.length) {
         throw new NotFoundException('No recommendations found for this user');
-      }
+      }*/
+     console.log(recommendations);
       return { success: true, data: recommendations };
     } catch (error) {
       console.error('Error fetching recommendations:', error.message);
