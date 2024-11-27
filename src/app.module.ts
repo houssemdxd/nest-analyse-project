@@ -13,6 +13,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { RecommadationModule } from './recommadation/recommadation.module';
 import { UserModule } from './user/user.module';
+import { LocationModule } from './location/location.module';
 
 @Module({
   imports: [
@@ -42,8 +43,12 @@ import { UserModule } from './user/user.module';
     AuthModule,
     RolesModule,
     OcrModule,
+
     UserModule,
+
     RecommadationModule,
+    LocationModule,
+
 
   ],
   controllers: [AppController],

@@ -6,39 +6,45 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as fs from 'fs';
 import { OCRService } from './ocr.service';
-import {OCRServiceextraction} from './ocrextraction'
+import { OCRServiceextraction } from './ocrextraction'
 import { CreateOcrDto } from './dto/create-ocr.dto';
-
+import { ApiOperation, ApiRequestTimeoutResponse, ApiResponse, ApiTags, ApiUnsupportedMediaTypeResponse } from '@nestjs/swagger';
+@ApiTags('OCR')
 @Controller('files')
 export class FileUploadController {
   constructor(private readonly ocrService: OCRService,
 
     private readonly OCRServiceextraction: OCRServiceextraction,
-    
-  ) {}
 
-  oldImageName : string =""
-  
+  ) { }
+
+  oldImageName: string = ""
+
   @Get()
-  async analyzeImage(imageName:string) {
+  async analyzeImage(imageName: string) {
     try {
-      var mediaPath="upload";
+      var mediaPath = "upload";
       const analysisResult = await this.OCRServiceextraction.analyzeImage(mediaPath, imageName);
 
-      return analysisResult ;
+      return analysisResult;
     } catch (error) {
       return { error: 'Image analysis failed', details: error.message };
     }
   }
 
-
+  @ApiResponse({ status: 201, description: 'file uploaded successfully .' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiRequestTimeoutResponse()
+  @ApiOperation({ summary: 'Upload a file' })
+  @ApiUnsupportedMediaTypeResponse({
+    description: 'The server does not support the media type of the request payload.',
+  })
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
       destination: (req, file, callback) => {
         const uploadDir = './upload';  // Local folder to store files
         // Ensure the upload directory exists
-        console.log("__________________________________")
         if (!fs.existsSync(uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -54,17 +60,22 @@ export class FileUploadController {
       },
     }),
   }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @Body('userId') userId: string
+  ) {
     try {
       if (!file) {
         throw new Error('No file uploaded');
       }
-      
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       console.log('File info:', file.filename); // Log file details for debugging
+      console.log('User ID:', userId); // Log user ID for debugging
+
       const extractedData = await this.analyzeImage(file.filename); // Implement your OCR logic here
       console.log(extractedData)
       extractedData["image_name"] = file.filename
-      this.ocrService.saveExtractedData(extractedData,"67374bbcb7311370893b6a3e");
+      await this.ocrService.saveExtractedData(extractedData, userId);
 
       return { message: 'File uploaded successfully and saved', filePath: file.path };
     } catch (error) {
@@ -73,23 +84,14 @@ export class FileUploadController {
     }
   }
 
-
-
-
-
   @Post('getAllImages')
   async forgotPassword(@Body() forgotPasswordDto: CreateOcrDto) {
-    return  this.ocrService.findAllByUserId(forgotPasswordDto.id);
+    return this.ocrService.findAllByUserId(forgotPasswordDto.id);
   }
-
 
   @Post('getImageDetails')
   async getImageDeatails(@Body() forgotPasswordDto: CreateOcrDto) {
-    return  this.ocrService.getImageDetail(forgotPasswordDto.id);
+    return this.ocrService.getImageDetail(forgotPasswordDto.id);
   }
-
-
-
-
 
 }

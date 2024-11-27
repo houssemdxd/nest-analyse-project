@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Recommadation } from './entities/recommadation.entity';
 import { User } from '../auth/schemas/user.schema';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class RecommadationService {
@@ -50,6 +51,7 @@ export class RecommadationService {
 
   // Fetch all recommendations for a specific user
   async getRecommadationsByUser(userId: string): Promise<Recommadation[]> {
+    console.log("the user id provided by the app is "+ userId)
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -86,4 +88,86 @@ export class RecommadationService {
     }
     return { message: 'Recommendation successfully deleted' };
   }
+
+  async generateRecommendationForAllUsers(): Promise<any> {
+  try {
+    // Step 1: Fetch all users
+    console.log('Fetching all users...');
+    const users: User[] = await this.userModel.find();
+    console.log(`Found ${users.length} users.`);
+
+    // Step 2: Iterate through each user and generate a recommendation
+    const recommendations = [];
+    for (const user of users) {
+      try {
+        console.log(`Generating recommendation for user:  (ID: ${user._id})`);
+        const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Add delay before making the request to the API (e.g., 2 seconds)
+        await sleep(2000);  // Adjust this delay as needed
+
+        // Generate a personalized prompt for each user (you can customize this prompt)
+        const prompt = `Generate a health care and life style recommendation  1 munite reading`;
+        const content = await this.generateContent(prompt);
+
+        // Save the generated recommendation in the database
+        await this.saveRecommendation(user.id, content);
+
+        recommendations.push({
+          userId: user._id,
+          recommendation: content,
+        });
+
+        console.log(`Recommendation for user ${user.name} generated successfully.`);
+      } catch (error) {
+        console.error(`Error generating recommendation for user ${user.name}:`, error);
+      }
+    }
+
+    return {
+      statusCode: 200,
+      message: 'Recommendations generated successfully for all users.',
+      data: recommendations, // Optionally return the generated recommendations
+    };
+  } catch (error) {
+    console.error('Error generating recommendations:', error);
+    throw new Error('Failed to generate recommendations.');
+  }
 }
+
+  // Save the generated recommendation in your database
+  async saveRecommendation(userId: string, recommendationContent: string): Promise<void> {
+    try {
+      console.log(`Saving recommendation for user ${userId}...`);
+      const recommendation = new this.recommadationModel({
+        user: userId,
+        content: recommendationContent,
+        title: 'Generated Recommendation', // You can customize the title as needed
+      });
+
+      await recommendation.save();
+      console.log(`Saved recommendation for user ${userId}: ${recommendationContent}`);
+    } catch (error) {
+      console.error('Error saving recommendation:', error);
+      throw new Error('Failed to save recommendation.');
+    }
+  }
+
+
+  //@Cron('*/5 * * * * *')
+  @Cron('0 0 * * *')
+  async generateRecommendationsJob(): Promise<void> {
+    console.log('Running scheduled job: Generating recommendations for all users...');
+    try {
+      const result = await this.generateRecommendationForAllUsers();
+      console.log('Job completed successfully:', result.message);
+    } catch (error) {
+      console.error('Error during scheduled recommendation generation:', error.message);
+    }
+  }
+
+
+}
+
+
+

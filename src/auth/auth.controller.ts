@@ -15,16 +15,21 @@ import { GoogleAuthGuard } from './google-auth.guard';
 import { userInfo } from 'os';
 import { log } from 'console';
 import { UpdateUserIndoDto } from './dtos/update-userInfo.dto'
+import { ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 
 interface AuthRequest extends Request {
   user?: any; // Define `user` based on what GoogleAuthGuard attaches
 }
+
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post('signup')
+  @ApiResponse({ status: 201, description: 'User account created successfully .' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   async signUp(@Body() signupData: SignupDto) {
     return this.authService.signup(signupData);
   }
@@ -32,22 +37,38 @@ export class AuthController {
   @Get('confirm-email')
   async confirmEmail(@Query('token') token: string) {
     console.log(token);
-   return this.authService.confirmEmail(token);
+    return this.authService.confirmEmail(token);
   }
 
   @Post('login')
+  @ApiUnauthorizedResponse({
+    description: 'Invalid credentials or unauthorized access.',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 401,
+          message: 'Unauthorized',
+          error: 'Invalid email or password',
+        },
+      },
+    },
+  })
+  
+  @ApiResponse({ status: 200, description: 'login successfully .' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   async login(@Body() credentials: LoginDto) {
-    console.log("in login with", credentials.email, credentials.password);
     return this.authService.login(credentials);
+  }
+
+  @Get('users')
+  async getAllUsers() {
+    return this.authService.getAllUsers();
   }
 
   @Post('refresh')
   async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);
   }
-
-
-  
 
   // @UseGuards(AuthenticationGuard)
   @Put('change-password')
@@ -75,9 +96,7 @@ export class AuthController {
     // Call the service to verify the OTP and get the reset token
     const result = await this.authService.verifyOtp(recoveryCode);
     return result; // Returns the reset token
-
   }
-
 
   @Put('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
@@ -109,6 +128,7 @@ export class AuthController {
 
     return this.authService.loginGoogle(req.user)
     //this.authService.login(userDto) // Log in the user
+
   }
 
 
