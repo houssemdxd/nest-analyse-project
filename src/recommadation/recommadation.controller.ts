@@ -69,13 +69,6 @@ export class GoogleAIController {
     }
   }*/
 
-
-
-
-
-
-
-
   @Post('recommendations')
   async getRecommendationsByUser(@Body('userId') userId: string) {
     try {

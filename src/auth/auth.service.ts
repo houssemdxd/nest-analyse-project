@@ -9,16 +9,18 @@ import {
 } from '@nestjs/common';
 import { SignupDto } from './dtos/signup.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User,UserSchema } from './schemas/user.schema';
+import { User, UserSchema } from './schemas/user.schema';
 import mongoose, { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './schemas/refresh-token.schema';
 import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 import { OTP } from './schemas/o-t-p.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -43,119 +45,112 @@ export class AuthService {
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
-  
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-  
+
     // Create user document and save in MongoDB
     const createdUser = await this.UserModel.create({
-    //  roleId,
+      //  roleId,
       name,
       email,
       password: hashedPassword,
     });
-  
+    const secret = process.env.JWT_SECRET;
+    const confirmationToken = jwt.sign({ email }, secret, { expiresIn: '1h' });
+
+    this.mailService.sendConfirmEmail(email, confirmationToken);
+
     // Return the response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
       data: createdUser,
+      message: "Registration successful! A confirmation email has been sent. Please check your inbox."
     };
   }
 
+  async confirmEmail(token: string) {
+    try {
+      const secret = process.env.JWT_SECRET;
+      const decoded = jwt.verify(token, secret);
+      const email = decoded['email'];
+      const user = await this.findUserByEmail(email);
+      if (!user) throw new Error('User not found');
+      user.isVerfied = true;
+      await user.save();
+      return { message: 'Email confirmed successfully', email };
+    } catch (error) {
+      throw new Error('Invalid or expired token');
+    }
+
+  }
   async login(credentials: LoginDto) {
 
     const { email, password } = credentials;
-  
+
     // Find if user exists by email
     const user = await this.UserModel.findOne({ email });
     if (!user) {
       throw new UnauthorizedException('Wrong credentials');
     }
-  
+
     // Compare entered password with existing password
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials this erorr ids from our');
     }
-  
+    if (!user.isVerfied) {
+      throw new UnauthorizedException('You most confirm your email');
+    }
+
     // Generate JWT tokens
     const tokens = await this.generateUserTokens(user._id);
-  
+
     // Return response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
       userId: user._id,
-      userName : user.name,
-      userEmail : user.email,
-      
+      userName: user.name,
+      userEmail: user.email,
+
       ...tokens,
     };
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   async loginGoogle(credentials: LoginDto) {
 
     const { email, password } = credentials;
-  
+
     // Find if user exists by email
     const user = await this.UserModel.findOne({ email });
     if (!user) {
       throw new UnauthorizedException('Wrong credentials');
     }
-  
+
     // Compare entered password with existing password
     const passwordMatch = password == user.password;
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials this erorr ids from our');
     }
-  
+
     // Generate JWT tokens
     const tokens = await this.generateUserTokens(user._id);
-  
+
     // Return response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
       userId: user._id,
+      //userName: user.name,
+      //userEmail: user.email,
+      //userPassword: user.password,
+
       ...tokens,
     };
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-  async changePassword(oldPassword: string, newPassword: string , userId : string) {
+  async changePassword(oldPassword: string, newPassword: string, userId: string) {
     //Find the user
     const user = await this.UserModel.findById(userId);
     if (!user) {
@@ -165,14 +160,14 @@ export class AuthService {
     //Compare the old password with the password in DB
     const passwordMatch = await bcrypt.compare(oldPassword, user.password);
     if (!passwordMatch) {
-      throw new UnauthorizedException('Wrong credentials update the user id id    ---'+ user.id +"and the password send by the user is "+oldPassword );
+      throw new UnauthorizedException('Wrong credentials update the user id id    ---' + user.id + "and the password send by the user is " + oldPassword);
     }
 
     //Change user's password
     const newHashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = newHashedPassword;
     await user.save();
-   return{ statusCode: HttpStatus.OK}
+    return { statusCode: HttpStatus.OK }
   }
 
   async forgotPassword(email: string) {
@@ -199,7 +194,7 @@ export class AuthService {
       statusCode: HttpStatus.OK,
       message: 'If this user exists, they will receive an email',
     };
-    
+
   }
 
   async verifyOtp(recoveryCode: string) {
@@ -220,7 +215,7 @@ export class AuthService {
     // Delete OTP after successful verification
     await this.OTPModel.deleteOne({ otp: recoveryCode });
 
-    return {statusCode: HttpStatus.OK, resetToken };
+    return { statusCode: HttpStatus.OK, resetToken };
   }
 
   async resetPassword(newPassword: string, resetToken: string) {
@@ -238,7 +233,7 @@ export class AuthService {
       user.password = await bcrypt.hash(newPassword, 10);
       await user.save();
 
-      return { statusCode: HttpStatus.OK,message: 'Your password has been changed successfully!' };
+      return { statusCode: HttpStatus.OK, message: 'Your password has been changed successfully!' };
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired token');
     }
@@ -310,7 +305,7 @@ export class AuthService {
     if (!user) {
 
       return user
-     
+
     }
 
     return user;
@@ -330,7 +325,7 @@ export class AuthService {
   async findOrCreateUser(profile: any) {
     const email = profile.emails[0].value;
     const name = profile.displayName;
-  
+
     // Check if the user already exists
     let user = await this.findUserByEmail(email);
     if (!user) {
@@ -342,38 +337,17 @@ export class AuthService {
       };
       const signupResult = await this.signup(newUser);
       user = signupResult.data; // Access the created user directly from the signup result
-    
+
     }
-  
+
     return user;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   async upadetuserInformation(name: string, email: string, userId: string) {
     try {
       // Try to find the user by ID
       const user = await this.UserModel.findById(userId);
-  
+
       // If user is not found, throw a 404 Not Found exception
       if (!user) {
         throw new NotFoundException({
@@ -381,12 +355,12 @@ export class AuthService {
           message: 'User not found',
         });
       }
-  
+
       // Update user's information
       user.email = email;
       user.name = name;
       await user.save();
-  
+
       // Return a success response with the updated user data
       return {
         statusCode: HttpStatus.OK,
@@ -404,16 +378,5 @@ export class AuthService {
       throw error;
     }
   }
-
-
-
-
-
-
-
-
-
-
-
 
 }
