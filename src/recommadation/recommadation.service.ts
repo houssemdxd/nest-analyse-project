@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable,NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -21,12 +22,36 @@ export class RecommadationService {
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
+
+
+  // Extract JSON from a string
+  extractJson(input: string): object | null {
+    try {
+      const startIndex = input.indexOf('{');
+      const endIndex = input.lastIndexOf('}');
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+        const jsonString = input.slice(startIndex, endIndex + 1);
+        return JSON.parse(jsonString);
+      }
+      return null;
+    } catch (error) {
+      console.error('Invalid JSON content:', error);
+      return null;
+    }
+  }
+
+
+
   // Generate content using Google Generative AI
-  async generateContent(prompt: string): Promise<string> {
+  async generateContent(prompt: string){
+    console.log("spotcha is invicked")
     try {
       const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const result = await model.generateContent(prompt);
-      return await result.response.text();
+      console.log("spotcha-18/////////////////////////////////////////////////////"+result.response.text())
+      const cleanJson =  this.extractJson(result.response.text());
+console.log(cleanJson)
+      return cleanJson;
     } catch (error) {
       console.error('Error generating content:', error);
       throw new Error('Failed to generate content.');
@@ -107,11 +132,17 @@ export class RecommadationService {
         await sleep(2000);  // Adjust this delay as needed
 
         // Generate a personalized prompt for each user (you can customize this prompt)
-        const prompt = `Generate a health care and life style recommendation  1 munite reading`;
+        const prompt = `Give me some general recommendation for general health. 
+                      I want one recommendation. Try to return JSON that contains 
+                      {title: choose a title that is significatif to the recommandation, recommendation: ...}.
+                      The recommendation should be a 1-minute read. please the recommandation talk about spesific subject`;
         const content = await this.generateContent(prompt);
+          console.log("the out put of the model recommandation is " +content["title"])
+          console.log("the 888888 is " )
+
 
         // Save the generated recommendation in the database
-        await this.saveRecommendation(user.id, content);
+        await this.saveRecommendation(user.id, content["recommendation"],content["title"]);
 
         recommendations.push({
           userId: user._id,
@@ -136,13 +167,13 @@ export class RecommadationService {
 }
 
   // Save the generated recommendation in your database
-  async saveRecommendation(userId: string, recommendationContent: string): Promise<void> {
+  async saveRecommendation(userId: string, recommendationContent: string,title :string): Promise<void> {
     try {
       console.log(`Saving recommendation for user ${userId}...`);
       const recommendation = new this.recommadationModel({
         user: userId,
         content: recommendationContent,
-        title: 'Generated Recommendation', // You can customize the title as needed
+        title: title, // You can customize the title as needed
       });
 
       await recommendation.save();
@@ -154,8 +185,9 @@ export class RecommadationService {
   }
 
 
+  
   //@Cron('*/5 * * * * *')
-  @Cron('0 0 * * *')
+  //@Cron('0 0 * * *')
   async generateRecommendationsJob(): Promise<void> {
     console.log('Running scheduled job: Generating recommendations for all users...');
     try {

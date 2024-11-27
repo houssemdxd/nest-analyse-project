@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
 import { Controller, Post, Body, InternalServerErrorException, Get} from '@nestjs/common';
 import { RecommadationService } from './recommadation.service';
@@ -23,16 +24,16 @@ export class GoogleAIController {
     }
   }
 
-  @Post('generate')
+  /*@Post('generate')
   async generate(@Body('userId') userId: string) {
     try {
       const prompt = `Give me some general recommendations for general health. 
                       I want one recommendation. Try to return JSON that contains 
                       {title: choose a title, recommendation: ...}.
-                      The recommendation should be a 1-minute read.`;
+                      The recommendation should be a 1-minute read. also a link to a public image `;
       
       const response = await this.googleAIService.generateContent(prompt);
-      const cleanJson = this.extractJson(response);
+      const cleanJson = this.extractJson(response.text());
 
       if (!cleanJson || typeof cleanJson !== 'object' || !cleanJson['title'] || !cleanJson['recommendation']) {
         throw new Error('AI response does not contain valid recommendation data.');
@@ -66,7 +67,7 @@ export class GoogleAIController {
       console.error('Error generating recommendations for all users:', error.message);
       throw new InternalServerErrorException('Error generating recommendations for all users');
     }
-  }
+  }*/
 
 
 

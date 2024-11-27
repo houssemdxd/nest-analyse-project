@@ -9,6 +9,11 @@ export class Recommadation extends Document {
   @Prop({ required: true })
   content: string;
 
+  
+  @Prop({ required: false })
+  image: string;
+
+
   @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId; // Reference to the User schema
 }
