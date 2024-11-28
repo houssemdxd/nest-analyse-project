@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
-import { Controller, Post, Body, InternalServerErrorException, Get} from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get, Param} from '@nestjs/common';
 import { RecommadationService } from './recommadation.service';
 import { CreateRecommadationDto } from './dto/create-recommadation.dto';
 
@@ -86,6 +86,9 @@ export class GoogleAIController {
   }
 
 
-
+  @Get('user/:userId')
+  async fetchUserOcrData(@Param('userId') userId: string): Promise<string> {
+    return this.googleAIService.getUserOcrData(userId);
+  }
 
 }

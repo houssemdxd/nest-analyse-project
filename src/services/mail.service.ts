@@ -45,6 +45,7 @@ export class MailService {
 */
     async sendConfirmEmail(email: string, token: string) {
       const confirmationUrl = `http://${process.env.API_BASE_URL}/auth/confirm-email?token=${token}`;
+      console.log("wE will send mail to this "+process.env.API_BASE_URL)
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,

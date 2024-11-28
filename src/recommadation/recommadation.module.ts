@@ -5,14 +5,19 @@ import { GoogleAIController } from './recommadation.controller';
 import { Recommadation, RecommadationSchema } from './entities/recommadation.entity';
 import { User, UserSchema } from '../auth/schemas/user.schema';
 import { ScheduleModule } from '@nestjs/schedule';
+import { OcrModule } from 'src/ocr/ocr.module';
+import { OCRDataSchema } from 'src/ocr/entities/ocr.entity';
 
+ 
 @Module({
   imports: [    ScheduleModule.forRoot(), // Enable scheduler
 
     MongooseModule.forFeature([
       { name: Recommadation.name, schema: RecommadationSchema },
       { name: User.name, schema: UserSchema },
+        { name: 'OCRData', schema: OCRDataSchema },
     ]),
+    OcrModule,
   ],
   controllers: [GoogleAIController],
   providers: [RecommadationService],
