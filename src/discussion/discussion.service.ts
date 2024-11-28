@@ -60,6 +60,22 @@ export class DiscussionService {
     return { aiResponse, discussion };
   }
 
+  async getDiscussion(userId: string, discussionId: ObjectId) {
+    const discussion = await this.discussionModel.findOne({
+      userId,
+      _id: discussionId,
+    });
+
+    if (!discussion) throw new Error('Discussion not found');
+
+    return discussion;
+  }
+
+
+  async getAllDiscussions(userId: string) {
+    return this.discussionModel.find({ userId }).select('title createdAt');
+  }
+
   // Generate a discussion title based on the initial message
   private async generateDiscussionTitle(context: string) {
     const prompt = `Generate a short, descriptive title for this message: "${context}"`;

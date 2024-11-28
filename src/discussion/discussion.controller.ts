@@ -1,5 +1,5 @@
 // src/discussion/discussion.controller.ts
-import { Controller, Post, Param, Body } from '@nestjs/common';
+import { Controller, Post, Param, Body, Get } from '@nestjs/common';
 import { DiscussionService } from './discussion.service';
 import { ObjectId } from 'mongoose';
 
@@ -24,5 +24,19 @@ export class DiscussionController {
     @Body('message') userMessage: string,
   ) {
     return this.discussionService.addMessage(userId, discussionId, userMessage);
+  }
+
+
+  @Get(':userId/:discussionId')
+  async getDiscussion(
+    @Param('userId') userId: string,
+    @Param('discussionId') discussionId: ObjectId,
+  ) {
+    return this.discussionService.getDiscussion(userId, discussionId);
+  }
+
+  @Get(':userId')
+  async getAllDiscussions(@Param('userId') userId: string) {
+    return this.discussionService.getAllDiscussions(userId);
   }
 }
