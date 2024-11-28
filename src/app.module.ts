@@ -14,6 +14,7 @@ import { join } from 'path';
 import { RecommadationModule } from './recommadation/recommadation.module';
 import { UserModule } from './user/user.module';
 import { LocationModule } from './location/location.module';
+import { DiscussionModule } from './discussion/discussion.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { LocationModule } from './location/location.module';
 
     RecommadationModule,
     LocationModule,
+    DiscussionModule,
 
 
   ],
