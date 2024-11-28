@@ -16,6 +16,7 @@ import { UserModule } from './user/user.module';
 import { LocationModule } from './location/location.module';
 import { QrService } from './qr/qr.service';
 import { QrController } from './qr/qr.controller';
+import { DiscussionModule } from './discussion/discussion.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { QrController } from './qr/qr.controller';
 
     RecommadationModule,
     LocationModule,
+    DiscussionModule,
 
 
   ],
