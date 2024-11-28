@@ -9,14 +9,15 @@ import {
 } from '@nestjs/common';
 import { SignupDto } from './dtos/signup.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserSchema } from './schemas/user.schema';
-import mongoose, { Model, Types } from 'mongoose';
-import * as bcrypt from 'bcrypt';
+import { User } from './schemas/user.schema';
+import { Model, Types } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
+
 import { LoginDto } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './schemas/refresh-token.schema';
 import { v4 as uuidv4 } from 'uuid';
-import { nanoid } from 'nanoid';
+//import { nanoid } from 'nanoid';
 import { OTP } from './schemas/o-t-p.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
