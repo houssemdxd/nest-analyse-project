@@ -14,6 +14,8 @@ import { join } from 'path';
 import { RecommadationModule } from './recommadation/recommadation.module';
 import { UserModule } from './user/user.module';
 import { LocationModule } from './location/location.module';
+import { QrService } from './qr/qr.service';
+import { QrController } from './qr/qr.controller';
 import { DiscussionModule } from './discussion/discussion.module';
 
 @Module({
@@ -53,7 +55,7 @@ import { DiscussionModule } from './discussion/discussion.module';
 
 
   ],
-  controllers: [AppController],
-  providers: [AppService, MailService],
+  controllers: [AppController, QrController],
+  providers: [AppService, MailService, QrService],
 })
 export class AppModule {}

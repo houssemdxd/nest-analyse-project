@@ -9,6 +9,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // Enable CORS with wildcard origin
+  app.enableCors({
+    origin: '*', // Allows all origins to make requests
+  });
   dotenv.config();
  
   app.useGlobalPipes(

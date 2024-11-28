@@ -9,7 +9,8 @@ import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'OCRData', schema: OCRDataSchema }]),AuthModule
+    MongooseModule.forFeature([{ name: 'OCRData', schema: OCRDataSchema }]),
+    AuthModule
      // Register OCRData model
   ],
   controllers: [FileUploadController],
