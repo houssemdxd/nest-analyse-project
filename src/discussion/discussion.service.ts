@@ -35,12 +35,50 @@ export class DiscussionService {
     return newDiscussion.save();
   }
 
-  // Send a new message in an existing discussion and get a response from the AI
-  async addMessage(
-    userId: string,
-    discussionId: ObjectId,
-    userMessage: string,
-  ) {
+  async addMessage(userId: string, discussionId: ObjectId, userMessage: string) {
+    // Step 1: Find the discussion by userId and discussionId
+    const discussion = await this.discussionModel.findOne({
+      userId,
+      _id: discussionId,
+    });
+  
+    // Step 2: Handle case when discussion is not found
+    if (!discussion) {
+      throw new Error('Discussion not found');
+    }
+  
+    console.log('Discussion found:', discussion); // Debugging log
+  
+    // Step 3: Add the user message to the messages array
+    discussion.messages.push({ role: 'user', content: userMessage });
+  
+    // Step 4: Generate an AI response for the user message
+    const aiResponse = await this.generateAIResponse(userMessage);
+  
+    // Step 5: Add the AI response to the messages array
+    discussion.messages.push({ role: 'assistant', content: aiResponse });
+  
+    console.log('Discussion with new messages:', discussion); // Debugging log after adding messages
+  
+    // Step 6: Update the discussion in the database
+    const updatedDiscussion = await this.discussionModel.findByIdAndUpdate(
+      discussionId, // The ID of the discussion
+      { messages: discussion.messages }, // Update the messages array
+      { new: true } // Return the updated document
+    );
+  
+    if (!updatedDiscussion) {
+      throw new Error('Failed to update the discussion');
+    }
+  
+    console.log('Updated discussion:', updatedDiscussion); // Debugging log for updated discussion
+  
+    // Step 7: Return the AI response and updated discussion
+    return { aiResponse, discussion: updatedDiscussion };
+  }
+  
+
+  async getDiscussion(userId: string, discussionId: ObjectId) {
     const discussion = await this.discussionModel.findOne({
       userId,
       _id: discussionId,
@@ -48,17 +86,15 @@ export class DiscussionService {
 
     if (!discussion) throw new Error('Discussion not found');
 
-    // Add user message
-    discussion.messages.push({ role: 'user', content: userMessage });
-
-    // Generate AI response for the new message
-    const aiResponse = await this.generateAIResponse(userMessage);
-    discussion.messages.push({ role: 'assistant', content: aiResponse });
-
-    await discussion.save();
-
-    return { aiResponse, discussion };
+    return discussion;
   }
+
+
+  async getAllDiscussions(userId: string) {
+    return this.discussionModel.find({ userId }).select('title createdAt');
+  }
+
+
 
   // Generate a discussion title based on the initial message
   private async generateDiscussionTitle(context: string) {

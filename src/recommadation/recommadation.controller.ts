@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
-import { Controller, Post, Body, InternalServerErrorException, Get, Param} from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get, Param, NotFoundException, Query} from '@nestjs/common';
 import { RecommadationService } from './recommadation.service';
 import { CreateRecommadationDto } from './dto/create-recommadation.dto';
 
@@ -68,7 +68,27 @@ export class GoogleAIController {
       throw new InternalServerErrorException('Error generating recommendations for all users');
     }
   }*/
-
+    @Get('make-request') // Define the route to make a request with a query parameter
+    async makeRequest(@Body('query') query: string): Promise<any> {
+      if (!query) {
+        throw new NotFoundException('Query parameter is required');
+      }
+  
+      try {
+        // Call the service method to make the request
+        const response = await this.googleAIService.makeRequest(query);
+  
+        // Check if the response is valid
+        if (!response) {
+          throw new NotFoundException('No data returned from the request');
+        }
+  
+        return response; // Return the result from the service
+      } catch (error) {
+        // Handle any errors that occur during the process
+        throw new NotFoundException(error.message || 'Something went wrong');
+      }
+    }
   @Post('recommendations')
   async getRecommendationsByUser(@Body('userId') userId: string) {
     try {
@@ -90,5 +110,33 @@ export class GoogleAIController {
   async fetchUserOcrData(@Param('userId') userId: string): Promise<string> {
     return this.googleAIService.getUserOcrData(userId);
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // Endpoint to download an image
+ @Get('download')
+ async downloadImage(@Body('url') url: string): Promise<string> {
+   const savePath = './images'; // Path where the image will be saved
+   await this.googleAIService.downloadImage(url);
+   return 'Image downloaded successfully!';
+ }
+
+
 
 }

@@ -7,11 +7,12 @@ import { User, UserSchema } from '../auth/schemas/user.schema';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OcrModule } from 'src/ocr/ocr.module';
 import { OCRDataSchema } from 'src/ocr/entities/ocr.entity';
+import { HttpModule } from '@nestjs/axios';
 
  
 @Module({
   imports: [    ScheduleModule.forRoot(), // Enable scheduler
-
+HttpModule,
     MongooseModule.forFeature([
       { name: Recommadation.name, schema: RecommadationSchema },
       { name: User.name, schema: UserSchema },
