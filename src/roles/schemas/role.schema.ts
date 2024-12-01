@@ -13,7 +13,7 @@ class Permission {
 
 @Schema()
 export class Role {
-  @Prop({ required: true })
+  @Prop({ required: true, unique:true })
   name: string;
 
   @Prop({ required: true, type: [Permission] })

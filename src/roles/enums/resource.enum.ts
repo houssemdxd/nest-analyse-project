@@ -1,5 +1,5 @@
 export enum Resource {
-  patient = 'settings',
-  Medicin = 'products',
+  patient = 'patient',
+  radiologist = 'radiologist',
 
 }

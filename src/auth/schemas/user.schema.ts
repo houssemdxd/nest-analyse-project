@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Document, SchemaTypes, Types } from 'mongoose';
+import { Role } from 'src/roles/schemas/role.schema';
 
 @Schema()
 export class User extends Document {
@@ -29,8 +30,11 @@ export class User extends Document {
     description : 'the role of the user',
     example : 'Radiologist'
   })
-  @Prop({ required: false, type: SchemaTypes.ObjectId })
-  roleId: Types.ObjectId;
+ // @Prop({ required: false, type: SchemaTypes.ObjectId })
+  //roleId: Types.ObjectId;
+
+  @Prop({ required: false, type: SchemaTypes.ObjectId, ref: 'Role'})
+  roleId: Role;
 
   @Prop({ default: false })
   isVerfied: Boolean;

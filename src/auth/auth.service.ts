@@ -38,9 +38,10 @@ export class AuthService {
   ) { }
 
   async signup(signupData: SignupDto) {
-    const { email, password, name } = signupData;
+    const { email, password, name, role } = signupData;
     //const { email, password, name, roleId } = signupData;
 
+    const roleO = await this.rolesService.getRoleByName(role);
     // Check if email is in use
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
@@ -56,7 +57,12 @@ export class AuthService {
       name,
       email,
       password: hashedPassword,
+      roleId: roleO._id,
     });
+    const populatedUser = await createdUser.populate('roleId');
+
+
+
     const secret = process.env.JWT_SECRET;
     const confirmationToken = jwt.sign({ email }, secret, { expiresIn: '1h' });
 
@@ -65,7 +71,7 @@ export class AuthService {
     // Return the response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
-      data: createdUser,
+      data: populatedUser,
       message: "Registration successful! A confirmation email has been sent. Please check your inbox."
     };
   }
@@ -107,12 +113,17 @@ export class AuthService {
     // Generate JWT tokens
     const tokens = await this.generateUserTokens(user._id);
 
+
+    const populatedUser = await user.populate('roleId');
+
+    console.log(populatedUser.roleId.name);
     // Return response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
-      userId: user._id,
-      userName: user.name,
-      userEmail: user.email,
+      userId: populatedUser._id,
+      userName: populatedUser.name,
+      userEmail: populatedUser.email,
+      userRole: populatedUser.roleId.name,
 
       ...tokens,
     };
@@ -326,7 +337,7 @@ export class AuthService {
   async findOrCreateUser(profile: any) {
     const email = profile.emails[0].value;
     const name = profile.displayName;
-
+    
     // Check if the user already exists
     let user = await this.findUserByEmail(email);
     if (!user) {
@@ -335,6 +346,7 @@ export class AuthService {
         email,
         name,
         password: '', // Leave main password empty as it's handled by Google
+        role:"patient",
       };
       const signupResult = await this.signup(newUser);
       user = signupResult.data; // Access the created user directly from the signup result
