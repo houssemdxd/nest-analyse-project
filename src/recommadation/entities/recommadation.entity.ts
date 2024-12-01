@@ -11,7 +11,7 @@ export class Recommadation extends Document {
 
   
   @Prop({ required: false })
-  image: string;
+  imageUrl: string;
 
 
   @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })

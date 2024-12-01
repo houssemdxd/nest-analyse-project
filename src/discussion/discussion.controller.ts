@@ -13,6 +13,7 @@ export class DiscussionController {
     @Param('userId') userId: string,
     @Body('message') initialMessage: string,
   ) {
+    console.log("this  function")
     return this.discussionService.createDiscussion(userId, initialMessage);
   }
 

@@ -7,6 +7,15 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Recommadation } from './entities/recommadation.entity';
 import { User, UserSchema } from '../auth/schemas/user.schema';
 import { Cron } from '@nestjs/schedule';
+import { lastValueFrom } from 'rxjs'; // For converting observables to promises
+import { HttpService } from '@nestjs/axios';
+import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
+import sharp from 'sharp';
+
+import { v4 as uuidv4 } from 'uuid'; // Import UUID package for generating unique IDs
+
 interface OcrData {
   userId: string;
   [key: string]: any; // To handle unknown dynamic attributes
@@ -20,6 +29,7 @@ export class RecommadationService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
 
     @InjectModel('OCRData') private readonly ocrDataModel: Model<OcrData>, // Inject OCRDataModel
+    private readonly httpService: HttpService // Inject HttpService for Axios
 
 
   ) {
@@ -103,7 +113,7 @@ console.log(cleanJson)
   }
 
   // Update a recommendation by ID
-  async updateRecommadation(recommendationId: string, updates: Partial<Recommadation>): Promise<Recommadation> {
+  async updateRecommadation(recommendationId: string, updates: Recommadation): Promise<Recommadation> {
     const recommendation = await this.recommadationModel.findByIdAndUpdate(recommendationId, updates, {
       new: true,
     });
@@ -126,6 +136,7 @@ console.log(cleanJson)
     try {
       // Step 1: Fetch all users
       console.log('Fetching all users...');
+
       const users: User[] = await this.userModel.find();
       console.log(`Found ${users.length} users.`);
   
@@ -147,7 +158,7 @@ console.log(cleanJson)
           // Generate the prompt based on OCR data
           const prompt = `Use this information: ${ocrData} to create a health recommendation. 
           Return a JSON object with:
-          {title: "A meaningful title for the recommendation", recommendation: "..."}.
+          {title: "A meaningful title for the recommendation", recommendation: "...",subject:please notice this is a very important part you need to proved a subject that i will use it in order to search image related to the recommnadtion if the recommnadtion for example about hydration return cap of water i mean something i can using it  about }.
           The recommendation should be specific and about a 1-minute read and please choose a creative titre and don't say based on your data  and every recommandation should speak about  some good practise and solutions and some tips and some adviceyou have many data  try to cover eachtime a topic and if there is no try to do a close topic.`;
   
           console.log(`Generated prompt for user ${user.id}:`, prompt);
@@ -155,10 +166,14 @@ console.log(cleanJson)
           // Generate content based on the prompt
           const content = await this.generateContent(prompt);
           console.log(`Generated content for user ${user._id}:`, content);
-          
+          var subjectOfImage = content["subject"]
+          var  imageUrl = this.makeRequest(subjectOfImage)
           // Save the generated recommendation in the database
-          await this.saveRecommendation(user.id,content["recommendation"],content["title"]);
-  
+
+         var newname = this.downloadImage(await imageUrl)
+
+          var savedRecommendationa=await this.saveRecommendation(user.id,content["recommendation"],content["title"], await newname)
+         // var updateRecommadation = await this.updateRecommadation(String(savedRecommendation._id),savedRecommendationafter)
           // Add to the recommendations list
           recommendations.push({
             userId: user._id,
@@ -183,16 +198,17 @@ console.log(cleanJson)
   }
   
   // Save the generated recommendation in your database
-  async saveRecommendation(userId: string, recommendationContent: string,title :string): Promise<void> {
+  async saveRecommendation(userId: string, recommendationContent: string,title :string,imageUrl:string): Promise<Recommadation> {
     try {
       console.log(`Saving recommendation for user ${userId}...`);
       const recommendation = new this.recommadationModel({
         user: userId,
         content: recommendationContent,
         title: title, // You can customize the title as needed
+        imageUrl:imageUrl
       });
 
-      await recommendation.save();
+     return  await recommendation.save();
       console.log(`Saved recommendation for user ${userId}: ${recommendationContent}`);
     } catch (error) {
       console.error('Error saving recommendation:', error);
@@ -228,15 +244,52 @@ console.log(cleanJson)
 
 
 
-
-
-
-
-
-
-
-
-
+  
+  // Function to download and save an image, converting SVG to PNG if necessary
+  async downloadImage(imageUrl: string): Promise<string> {
+    try {
+      const savePath = './upload'; // Path to save images
+      const response = await axios.get(imageUrl, { responseType: 'arraybuffer' }); // Get image data
+  
+      const contentType = response.headers['content-type']; // Check image type
+  
+      // Create the directory if it does not exist
+      if (!fs.existsSync(savePath)) {
+        fs.mkdirSync(savePath, { recursive: true });
+      }
+  
+      // Generate a unique filename using UUID
+      const uniqueId = uuidv4(); // Generate a unique ID
+      let imageExtension = path.extname(imageUrl).toLowerCase(); // Get the file extension from URL
+  
+      // If the content is SVG, change the extension to .png
+      if (contentType && contentType === 'image/svg+xml') {
+        imageExtension = '.png'; // Change extension to PNG
+      }
+  
+      // Build the full path with the unique ID
+      const fileName = `${uniqueId}${imageExtension}`; // Create the filename
+      const filePath = path.join(savePath, fileName); // Full path to save the image
+  
+      // If it's SVG, convert it to PNG using sharp
+      if (contentType && contentType === 'image/svg+xml') {
+        await sharp(response.data)
+          .png() // Convert to PNG
+          .toFile(filePath);
+        console.log(`SVG image converted and saved as PNG at ${filePath}`);
+      } else {
+        // Otherwise, save the image as-is
+        fs.writeFileSync(filePath, response.data);
+        console.log(`Image downloaded and saved at ${filePath}`);
+      }
+  
+      return fileName; // Return the saved file path
+    } catch (error) {
+      console.error('Error downloading the image:', error.message);
+      throw new Error('Failed to download image');
+    }
+  }
+  
 
 
 
@@ -273,6 +326,61 @@ console.log(cleanJson)
       throw new Error('Failed to fetch OCR data.');
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Make an API request using Axios
+async makeRequest(query: string): Promise<any> {
+  const url = 'https://google.serper.dev/images';
+  const headers = {
+    'X-API-KEY': '1e0b22132868fe3777b22f02be9cf3916b4fd261',
+    'Content-Type': 'application/json',
+  };
+  const data = { q: query };
+
+  try {
+    // Use HttpService to make the request
+    const response = await lastValueFrom(
+      this.httpService.post(url, data, { headers })
+    );
+
+    // Extract the first image URL from the response data
+    const firstImageUrl = response.data.images ? response.data.images[0].imageUrl : null;
+
+    // Log the first image URL
+    if (firstImageUrl) {
+      console.log('First image URL:', firstImageUrl);
+    } else {
+      console.log('No images found.');
+    }
+
+    // Return the response data (optional)
+    return firstImageUrl;
+  } catch (error) {
+    console.error('Error making request:', error.message);
+    throw new Error('Failed to fetch data from the API.');
+  }
+}
+
+
+
+
 }
 
 
