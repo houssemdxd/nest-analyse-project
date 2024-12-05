@@ -14,7 +14,7 @@ export class DiscussionService {
   ) {}
 
   // Create a new discussion and immediately send a message to receive a response
-  async createDiscussion(userId: string, initialMessage: string) {
+  a/*sync createDiscussion(userId: string, initialMessage: string) {
     // Generate the title for the discussion based on the first message
     const title = await this.generateDiscussionTitle(initialMessage);
 
@@ -33,6 +33,38 @@ export class DiscussionService {
 
     // Save and return the discussion
     return newDiscussion.save();
+  }*/
+    async createDiscussion(userId: string, initialMessage: string) {
+
+
+        if (!initialMessage ){
+          initialMessage = "hello"
+        }
+      // Generate the title for the discussion based on the first message
+      const title = await this.generateDiscussionTitle(initialMessage);
+  
+      // Generate AI response to the first message
+      const aiResponse = await this.generateAIResponse(initialMessage);
+  
+      // Create the discussion object with the user's message and AI response
+      const newDiscussion = new this.discussionModel({
+          userId,
+          title,
+          messages: [
+              { role: 'user', content: initialMessage },
+              { role: 'assistant', content: aiResponse },
+          ],
+      });
+  
+      // Save the new discussion
+      const savedDiscussion = await newDiscussion.save();
+  
+      // Return the discussion object with aiResponse included
+      return {
+          id: savedDiscussion._id,
+          aiResponse, // Return aiResponse alongside other discussion details
+          title: savedDiscussion.title,
+      };
   }
 /*
   async addMessage(userId: string, discussionId: ObjectId, userMessage: string) {
@@ -73,28 +105,38 @@ export class DiscussionService {
     const discussion = await this.discussionModel.findById(discussionId);
 
     if (!discussion) {
-      console.error(`Discussion not found for userId: ${userId}, discussionId: ${discussionId}`);
-      throw new Error('Discussion not found');
+        console.error(`Discussion not found for userId: ${userId}, discussionId: ${discussionId}`);
+        throw new Error('Discussion not found');
     }
 
     // Push the new user message to the conversation history
     const newMessages = [...discussion.messages, { role: 'user', content: userMessage }];
 
-    // Generate the AI response using the entire conversation history (this is crucial for remembering context)
+    // Generate the AI response using the entire conversation history
     const aiResponse = await this.generateAIResponse(newMessages.map(msg => msg.content).join('\n'));
 
-    // Now add both the user message and the AI response to the conversation
+    // Add the AI response to the messages
     newMessages.push({ role: 'assistant', content: aiResponse });
 
     // Update the discussion with the new messages
     const updatedDiscussion = await this.discussionModel.findByIdAndUpdate(
-      discussionId,
-      { messages: newMessages },
-      { new: true } // Return the updated document
+        discussionId,
+        { messages: newMessages },
+        { new: true } // Return the updated document
     );
 
-    return { aiResponse, updatedDiscussion };
-  }
+    if (!updatedDiscussion) {
+        console.error(`Failed to update discussion with ID: ${discussionId}`);
+        throw new Error('Failed to update discussion');
+    }
+
+    // Return the response formatted as expected by the client
+    return {
+        id: updatedDiscussion._id,
+        title: updatedDiscussion.title,
+        aiResponse: aiResponse,
+    };
+}
 
   
   async getDiscussion(userId: string, discussionId: ObjectId) {
@@ -136,7 +178,7 @@ export class DiscussionService {
 
   // Generate a discussion title based on the initial message
   private async generateDiscussionTitle(context: string) {
-    const prompt = `Generate a short, descriptive title for this message: "${context}"`;
+    const prompt = `Generate a short, descriptive title for this message 4 words maximum: "${context}"`;
     const result = await this.model.generateContent(prompt);
     return result.response.text().trim();
   }

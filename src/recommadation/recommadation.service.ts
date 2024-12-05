@@ -218,7 +218,7 @@ console.log(cleanJson)
 
 
   
- //@Cron('*/5 * * * * *')
+ // @Cron('*/5 * * * * *')
   //@Cron('0 0 * * *')
   async generateRecommendationsJob(): Promise<void> {
     console.log('Running scheduled job: Generating recommendations for all users...');
@@ -344,39 +344,42 @@ console.log(cleanJson)
 
 
 
-
-// Make an API request using Axios
-async makeRequest(query: string): Promise<any> {
-  const url = 'https://google.serper.dev/images';
-  const headers = {
-    'X-API-KEY': '1e0b22132868fe3777b22f02be9cf3916b4fd261',
-    'Content-Type': 'application/json',
-  };
-  const data = { q: query };
-
-  try {
-    // Use HttpService to make the request
-    const response = await lastValueFrom(
-      this.httpService.post(url, data, { headers })
-    );
-
-    // Extract the first image URL from the response data
-    const firstImageUrl = response.data.images ? response.data.images[0].imageUrl : null;
-
-    // Log the first image URL
-    if (firstImageUrl) {
-      console.log('First image URL:', firstImageUrl);
-    } else {
-      console.log('No images found.');
+  async makeRequest(query: string): Promise<any> {
+    const url = 'https://google.serper.dev/images';
+    const headers = {
+      'X-API-KEY': '1e0b22132868fe3777b22f02be9cf3916b4fd261',
+      'Content-Type': 'application/json',
+    };
+    const data = { q: query };
+  
+    try {
+      // Use HttpService to make the request
+      const response = await lastValueFrom(
+        this.httpService.post(url, data, { headers })
+      );
+  
+      // Check if the images array exists and is not empty
+      if (response.data.images && response.data.images.length > 0) {
+        // Select a random index based on the array length
+        const randomIndex = Math.floor(Math.random() * response.data.images.length);
+  
+        // Extract the image URL at the random index
+        const randomImageUrl = response.data.images[randomIndex].imageUrl;
+  
+        console.log('Random image URL:', randomImageUrl);
+  
+        // Return the random image URL
+        return randomImageUrl;
+      } else {
+        console.log('No images found.');
+        return null; // Return null if no images are found
+      }
+    } catch (error) {
+      console.error('Error making request:', error.message);
+      throw new Error('Failed to fetch data from the API.');
     }
-
-    // Return the response data (optional)
-    return firstImageUrl;
-  } catch (error) {
-    console.error('Error making request:', error.message);
-    throw new Error('Failed to fetch data from the API.');
   }
-}
+  
 
 
 
