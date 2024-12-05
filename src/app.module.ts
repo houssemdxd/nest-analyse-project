@@ -17,6 +17,9 @@ import { LocationModule } from './location/location.module';
 import { QrService } from './qr/qr.service';
 import { QrController } from './qr/qr.controller';
 import { DiscussionModule } from './discussion/discussion.module';
+import { ImageModule } from './image/image.module';
+import { PostModule } from './post/post.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -52,6 +55,9 @@ import { DiscussionModule } from './discussion/discussion.module';
     RecommadationModule,
     LocationModule,
     DiscussionModule,
+    ImageModule,
+    PostModule,
+    CommentModule,
 
 
   ],

@@ -92,6 +92,7 @@ export class AuthController {
   @Post('verify-otp')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     const { recoveryCode } = verifyOtpDto;
+    console.log(recoveryCode)
 
     // Call the service to verify the OTP and get the reset token
     const result = await this.authService.verifyOtp(recoveryCode);

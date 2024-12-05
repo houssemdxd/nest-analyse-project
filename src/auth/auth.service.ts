@@ -191,8 +191,8 @@ export class AuthService {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
-
-      //const resetToken = nanoid(64);
+      console.log("the otp code is",otp)
+      //const resetToken = nanoi  d(64);
       await this.OTPModel.create({
         otp: otp,
         userId: user._id,
