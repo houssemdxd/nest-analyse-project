@@ -56,7 +56,7 @@ export class MailService {
           <a href="${confirmationUrl}"> Confirm email</a>
         `,
       };
-      
+      console.log(confirmationUrl);
     await this.transporter.sendMail(mailOptions);
   }
 }
