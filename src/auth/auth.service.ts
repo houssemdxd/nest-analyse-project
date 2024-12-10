@@ -41,7 +41,7 @@ export class AuthService {
     const { email, password, name, role } = signupData;
     //const { email, password, name, roleId } = signupData;
 
-    const roleO = await this.rolesService.getRoleByName(role);
+    const roleO ="radiologist";
     // Check if email is in use
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
@@ -57,7 +57,7 @@ export class AuthService {
       name,
       email,
       password: hashedPassword,
-      roleId: roleO._id,
+      //roleId: roleO._id,
     });
     const populatedUser = await createdUser.populate('roleId');
 
@@ -114,16 +114,16 @@ export class AuthService {
     const tokens = await this.generateUserTokens(user._id);
 
 
-    const populatedUser = await user.populate('roleId');
+    //const populatedUser = await user.populate('roleId');
 
-    console.log(populatedUser.roleId.name);
+    //onsole.log(user.roleId.name);
     // Return response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
-      userId: populatedUser._id,
-      userName: populatedUser.name,
-      userEmail: populatedUser.email,
-      userRole: populatedUser.roleId.name,
+      userId: user._id,
+      userName: user.name,
+      userEmail: user.email,
+      //userRole: populatedUser.roleId.name,
 
       ...tokens,
     };
