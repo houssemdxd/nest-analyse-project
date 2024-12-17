@@ -24,6 +24,7 @@ import { TumorDetectionController } from './tumor_detection/tumor.detection.cont
 import { TumorDetectionService } from './tumor_detection/tumor.detection.service';
 import { TumorDetectionModule } from './tumor_detection/tumor.detection.module';
 import { HttpModule } from '@nestjs/axios';
+import { CliniqueModule } from './clinique/clinique.module';
 
 @Module({
   imports: [
@@ -64,7 +65,8 @@ import { HttpModule } from '@nestjs/axios';
     ImageModule,
     PostModule,
     CommentModule,
-    TumorDetectionModule
+    TumorDetectionModule,
+    CliniqueModule,
 
 
   ],
