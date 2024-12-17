@@ -86,11 +86,13 @@ export class FileUploadController {
 
   @Post('getAllImages')
   async forgotPassword(@Body() forgotPasswordDto: CreateOcrDto) {
+    console.log("this fuction of get all omages called")
     return this.ocrService.findAllByUserId(forgotPasswordDto.id);
   }
 
   @Post('getImageDetails')
   async getImageDeatails(@Body() forgotPasswordDto: CreateOcrDto) {
+    console.log("get image details function invocked");
     return this.ocrService.getImageDetail(forgotPasswordDto.id);
   }
 

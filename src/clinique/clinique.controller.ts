@@ -29,6 +29,20 @@ export class CliniqueController {
     }
   }
 
+
+    // Fetch all cliniques
+    @Get('clinics')
+    async findAllHoussem() {
+      console.log("this function is called");
+      try {
+        const cliniques = await this.cliniqueService.findAll();
+        return { cliniques };
+      } catch (error) {
+        return { success: false, message: error.message };
+      }
+    }
+  
+
   // Search cliniques by region
   @Get('search')
   async search(@Query('region') region: string) {

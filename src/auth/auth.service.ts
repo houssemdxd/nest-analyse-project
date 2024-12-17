@@ -41,7 +41,7 @@ export class AuthService {
     const { email, password, name, role } = signupData;
     //const { email, password, name, roleId } = signupData;
 
-    const roleO ="radiologist";
+    const roleO = await this.rolesService.getRoleByName("patient");
     // Check if email is in use
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
@@ -57,7 +57,7 @@ export class AuthService {
       name,
       email,
       password: hashedPassword,
-      //roleId: roleO._id,
+      roleId: roleO._id,
     });
     const populatedUser = await createdUser.populate('roleId');
 
@@ -92,6 +92,7 @@ export class AuthService {
 
   }
   async login(credentials: LoginDto) {
+    console.log("login function invocked ")
 
     const { email, password } = credentials;
 
@@ -114,16 +115,16 @@ export class AuthService {
     const tokens = await this.generateUserTokens(user._id);
 
 
-    //const populatedUser = await user.populate('roleId');
+    const populatedUser = await user.populate('roleId');
 
-    //onsole.log(user.roleId.name);
-    // Return response with statusCode and user information
+console.log(populatedUser)    
+// Return response with statusCode and user information
     return {
       statusCode: HttpStatus.OK,
       userId: user._id,
       userName: user.name,
       userEmail: user.email,
-      //userRole: populatedUser.roleId.name,
+      userRole: populatedUser.roleId.name,
 
       ...tokens,
     };
@@ -153,9 +154,10 @@ export class AuthService {
     return {
       statusCode: HttpStatus.OK,
       userId: user._id,
-      //userName: user.name,
-      //userEmail: user.email,
-      //userPassword: user.password,
+      userName: user.name,
+      userEmail: user.email,
+      userPassword: user.password,
+      userRole : user.roleId.name,
 
       ...tokens,
     };

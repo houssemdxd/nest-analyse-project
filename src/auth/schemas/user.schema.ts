@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Document, SchemaTypes, Types } from 'mongoose';

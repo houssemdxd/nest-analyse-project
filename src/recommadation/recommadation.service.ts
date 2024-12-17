@@ -144,6 +144,10 @@ console.log(cleanJson)
       const recommendations = [];
       for (const user of users) {
         try {
+          console.log(user.roleId)
+          var idrole = String(user.roleId)
+          if(idrole == "6760acdd75a123abae7f2dc3")
+          {
           console.log(`Generating recommendation for user: (ID: ${user._id})`);
   
           // Delay before processing each user
@@ -179,7 +183,7 @@ console.log(cleanJson)
             userId: user._id,
             recommendation: content,
           });
-  
+        }
           console.log(`Recommendation for user ${user._id} generated successfully.`);
         } catch (error) {
           console.error(`Error generating recommendation for user ${user._id}:`, error);
@@ -218,7 +222,7 @@ console.log(cleanJson)
 
 
   
- // @Cron('*/5 * * * * *')
+  // @Cron('*/5 * * * * *')
   //@Cron('0 0 * * *')
   async generateRecommendationsJob(): Promise<void> {
     console.log('Running scheduled job: Generating recommendations for all users...');

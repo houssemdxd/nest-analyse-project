@@ -31,6 +31,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User account created successfully .' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async signUp(@Body() signupData: SignupDto) {
+    console.log("this function of sign up is callled ");
     return this.authService.signup(signupData);
   }
 
