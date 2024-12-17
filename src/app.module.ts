@@ -20,6 +20,7 @@ import { DiscussionModule } from './discussion/discussion.module';
 import { ImageModule } from './image/image.module';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
+import { CliniqueModule } from './clinique/clinique.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { CommentModule } from './comment/comment.module';
     ImageModule,
     PostModule,
     CommentModule,
+    CliniqueModule,
 
 
   ],
