@@ -44,8 +44,8 @@ export class CommentService {
     return 'This action adds a new comment';
   }*/
 
-  findAll() {
-    return `This action returns all comment`;
+  async findAll() {
+    return await this.commentModel.find();
   }
 
   findOne(id: number) {

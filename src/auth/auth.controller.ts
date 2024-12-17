@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { Get, Body, Controller, Post, Put, Req, UseGuards, Query } from '@nestjs/common';
+import { Get, Body, Controller, Post, Put, Req, UseGuards, Query, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dtos/signup.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -58,6 +58,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'login successfully .' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async login(@Body() credentials: LoginDto) {
+    console.log("login ;;;;");
     return this.authService.login(credentials);
   }
 
@@ -154,6 +155,10 @@ export class AuthController {
 
   }
 
-
+  @Put('user-banne/:userId')
+  async setIsBanne(@Param('userId') userId: string){
+    console.log("--------------ban user");
+    return await this.authService.setIsBanned(userId);
+  }
 
 }

@@ -11,7 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 export class ImageService {
   constructor(
     @InjectModel(Image.name) private readonly ImageModel: Model<Image>,
-  ){}
+  ) { }
 
 
   async createImage(data: { title: string; imageName: string; userId: string }): Promise<Image> {
@@ -20,19 +20,19 @@ export class ImageService {
       if (!data.userId) {
         throw new Error('User ID is required');
       }
-  
+
       const image = new this.ImageModel({
         title: data.title,
         imageName: data.imageName,
         user: new Types.ObjectId(data.userId), // Convert to ObjectId
       });
-  
+
       return await image.save();
     } catch (error) {
       throw new Error(`Error creating image: ${error.message}`);
     }
   }
-  
+
 
   findAll() {
     return `This action returns all image`;
@@ -59,8 +59,22 @@ export class ImageService {
       throw new Error(`Error fetching images for user ID ${userId}: ${error.message}`);
     }
   }
-  
 
+
+
+
+
+
+  async getAllImagesByUser(userId: string): Promise<Image[]> {
+    try {
+      const images = await this.ImageModel.find({ user: userId }).exec();
+      return images;
+      
+    } catch (error) {
+      throw new Error(`Error fetching images: ${error.message}`);
+    }
+  }
+  
 
 
 }

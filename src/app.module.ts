@@ -20,10 +20,16 @@ import { DiscussionModule } from './discussion/discussion.module';
 import { ImageModule } from './image/image.module';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
+import { TumorDetectionController } from './tumor_detection/tumor.detection.controller';
+import { TumorDetectionService } from './tumor_detection/tumor.detection.service';
+import { TumorDetectionModule } from './tumor_detection/tumor.detection.module';
+import { HttpModule } from '@nestjs/axios';
 import { CliniqueModule } from './clinique/clinique.module';
 
 @Module({
   imports: [
+    HttpModule,
+
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
@@ -59,11 +65,12 @@ import { CliniqueModule } from './clinique/clinique.module';
     ImageModule,
     PostModule,
     CommentModule,
+    TumorDetectionModule,
     CliniqueModule,
 
 
   ],
-  controllers: [AppController, QrController],
-  providers: [AppService, MailService, QrService],
+  controllers: [AppController, QrController, TumorDetectionController],
+  providers: [AppService, MailService, QrService,TumorDetectionService],
 })
 export class AppModule {}

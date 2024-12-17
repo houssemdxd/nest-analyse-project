@@ -1,6 +1,6 @@
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable,NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -61,14 +61,14 @@ export class RecommadationService {
 
 
   // Generate content using Google Generative AI
-  async generateContent(prompt: string){
+  async generateContent(prompt: string) {
     console.log("spotcha is invicked")
     try {
       const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const result = await model.generateContent(prompt);
-      console.log("spotcha-18/////////////////////////////////////////////////////"+result.response.text())
-      const cleanJson =  this.extractJson(result.response.text());
-console.log(cleanJson)
+      console.log("spotcha-18/////////////////////////////////////////////////////" + result.response.text())
+      const cleanJson = this.extractJson(result.response.text());
+      console.log(cleanJson)
       return cleanJson;
     } catch (error) {
       console.error('Error generating content:', error);
@@ -94,7 +94,7 @@ console.log(cleanJson)
 
   // Fetch all recommendations for a specific user
   async getRecommadationsByUser(userId: string): Promise<Recommadation[]> {
-    console.log("the user id provided by the app is "+ userId)
+    console.log("the user id provided by the app is " + userId)
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -139,7 +139,7 @@ console.log(cleanJson)
 
       const users: User[] = await this.userModel.find();
       console.log(`Found ${users.length} users.`);
-  
+
       // Step 2: Iterate through each user and generate a recommendation
       const recommendations = [];
       for (const user of users) {
@@ -149,35 +149,35 @@ console.log(cleanJson)
           if(idrole == "6760acdd75a123abae7f2dc3")
           {
           console.log(`Generating recommendation for user: (ID: ${user._id})`);
-  
+
           // Delay before processing each user
           const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
           await sleep(9000); // Adjust this delay as needed
-  
+
           // Fetch OCR data for the user
           console.log(`Fetching OCR data for user: ${user._id}`);
           const ocrData = await this.getUserOcrData(user._id.toString());
           console.log(`OCR Data for user ${user._id}:`, ocrData);
-  
+
           // Generate the prompt based on OCR data
           const prompt = `Use this information: ${ocrData} to create a health recommendation. 
           Return a JSON object with:
           {title: "A meaningful title for the recommendation", recommendation: "...",subject:please notice this is a very important part you need to proved a subject that i will use it in order to search image related to the recommnadtion if the recommnadtion for example about hydration return cap of water i mean something i can using it  about }.
           The recommendation should be specific and about a 1-minute read and please choose a creative titre and don't say based on your data  and every recommandation should speak about  some good practise and solutions and some tips and some adviceyou have many data  try to cover eachtime a topic and if there is no try to do a close topic.`;
-  
+
           console.log(`Generated prompt for user ${user.id}:`, prompt);
-  
+
           // Generate content based on the prompt
           const content = await this.generateContent(prompt);
           console.log(`Generated content for user ${user._id}:`, content);
           var subjectOfImage = content["subject"]
-          var  imageUrl = this.makeRequest(subjectOfImage)
+          var imageUrl = this.makeRequest(subjectOfImage)
           // Save the generated recommendation in the database
 
-         var newname = this.downloadImage(await imageUrl)
+          var newname = this.downloadImage(await imageUrl)
 
-          var savedRecommendationa=await this.saveRecommendation(user.id,content["recommendation"],content["title"], await newname)
-         // var updateRecommadation = await this.updateRecommadation(String(savedRecommendation._id),savedRecommendationafter)
+          var savedRecommendationa = await this.saveRecommendation(user.id, content["recommendation"], content["title"], await newname)
+          // var updateRecommadation = await this.updateRecommadation(String(savedRecommendation._id),savedRecommendationafter)
           // Add to the recommendations list
           recommendations.push({
             userId: user._id,
@@ -189,7 +189,7 @@ console.log(cleanJson)
           console.error(`Error generating recommendation for user ${user._id}:`, error);
         }
       }
-  
+
       return {
         statusCode: 200,
         message: 'Recommendations generated successfully for all users.',
@@ -200,19 +200,19 @@ console.log(cleanJson)
       throw new Error('Failed to generate recommendations.');
     }
   }
-  
+
   // Save the generated recommendation in your database
-  async saveRecommendation(userId: string, recommendationContent: string,title :string,imageUrl:string): Promise<Recommadation> {
+  async saveRecommendation(userId: string, recommendationContent: string, title: string, imageUrl: string): Promise<Recommadation> {
     try {
       console.log(`Saving recommendation for user ${userId}...`);
       const recommendation = new this.recommadationModel({
         user: userId,
         content: recommendationContent,
         title: title, // You can customize the title as needed
-        imageUrl:imageUrl
+        imageUrl: imageUrl
       });
 
-     return  await recommendation.save();
+      return await recommendation.save();
       console.log(`Saved recommendation for user ${userId}: ${recommendationContent}`);
     } catch (error) {
       console.error('Error saving recommendation:', error);
@@ -248,33 +248,33 @@ console.log(cleanJson)
 
 
 
-  
+
   // Function to download and save an image, converting SVG to PNG if necessary
   async downloadImage(imageUrl: string): Promise<string> {
     try {
       const savePath = './upload'; // Path to save images
       const response = await axios.get(imageUrl, { responseType: 'arraybuffer' }); // Get image data
-  
+
       const contentType = response.headers['content-type']; // Check image type
-  
+
       // Create the directory if it does not exist
       if (!fs.existsSync(savePath)) {
         fs.mkdirSync(savePath, { recursive: true });
       }
-  
+
       // Generate a unique filename using UUID
       const uniqueId = uuidv4(); // Generate a unique ID
       let imageExtension = path.extname(imageUrl).toLowerCase(); // Get the file extension from URL
-  
+
       // If the content is SVG, change the extension to .png
       if (contentType && contentType === 'image/svg+xml') {
         imageExtension = '.png'; // Change extension to PNG
       }
-  
+
       // Build the full path with the unique ID
       const fileName = `${uniqueId}${imageExtension}`; // Create the filename
       const filePath = path.join(savePath, fileName); // Full path to save the image
-  
+
       // If it's SVG, convert it to PNG using sharp
       if (contentType && contentType === 'image/svg+xml') {
         await sharp(response.data)
@@ -286,14 +286,14 @@ console.log(cleanJson)
         fs.writeFileSync(filePath, response.data);
         console.log(`Image downloaded and saved at ${filePath}`);
       }
-  
+
       return fileName; // Return the saved file path
     } catch (error) {
       console.error('Error downloading the image:', error.message);
       throw new Error('Failed to download image');
     }
   }
-  
+
 
 
 
@@ -355,7 +355,7 @@ console.log(cleanJson)
       'Content-Type': 'application/json',
     };
     const data = { q: query };
-  
+
     try {
       // Use HttpService to make the request
       const response = await lastValueFrom(
@@ -383,8 +383,6 @@ console.log(cleanJson)
       throw new Error('Failed to fetch data from the API.');
     }
   }
-  
-
 
 
 

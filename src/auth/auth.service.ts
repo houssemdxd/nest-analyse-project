@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+/* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
@@ -40,14 +42,21 @@ export class AuthService {
   async signup(signupData: SignupDto) {
     const { email, password, name, role } = signupData;
     //const { email, password, name, roleId } = signupData;
-
-    const roleO = await this.rolesService.getRoleByName("patient");
+    const roleO = await this.rolesService.getRoleByName(role);
+    //const roleO = await this.rolesService.getRoleByName("patient");
+    //const roleO ="radiologist";
     // Check if email is in use
+
+
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
 
+    var isBanned = false;
+    if (role == "radiologist") {
+      isBanned = true;
+    }
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -58,7 +67,9 @@ export class AuthService {
       email,
       password: hashedPassword,
       roleId: roleO._id,
+      isBanned: isBanned,
     });
+
     const populatedUser = await createdUser.populate('roleId');
 
 
@@ -76,6 +87,23 @@ export class AuthService {
     };
   }
 
+  async setIsBanned(userId: String) {
+    console.log("-------1");
+    const user = await this.UserModel.findById(userId).exec();
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    console.log("-------2",user);
+
+    user.isBanned = !user.isBanned;
+    console.log("-------3");
+    await this.UserModel.updateOne(
+      { _id: userId },
+      { $set: { isBanned: user.isBanned } }
+    );
+
+    return { success: true, isBanned: user.isBanned };
+  }
   async confirmEmail(token: string) {
     try {
       const secret = process.env.JWT_SECRET;
@@ -109,6 +137,9 @@ export class AuthService {
     }
     if (!user.isVerfied) {
       throw new UnauthorizedException('You most confirm your email');
+    }
+    if (user.isBanned&&user.isBanned!=null) {
+      throw new UnauthorizedException('You most be banned!');
     }
 
     // Generate JWT tokens
@@ -193,7 +224,7 @@ console.log(populatedUser)
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
-      console.log("the otp code is",otp)
+      console.log("the otp code is", otp)
       //const resetToken = nanoi  d(64);
       await this.OTPModel.create({
         otp: otp,
@@ -339,7 +370,7 @@ console.log(populatedUser)
   async findOrCreateUser(profile: any) {
     const email = profile.emails[0].value;
     const name = profile.displayName;
-    
+
     // Check if the user already exists
     let user = await this.findUserByEmail(email);
     if (!user) {
@@ -348,7 +379,7 @@ console.log(populatedUser)
         email,
         name,
         password: '', // Leave main password empty as it's handled by Google
-        role:"patient",
+        role: "patient",
       };
       const signupResult = await this.signup(newUser);
       user = signupResult.data; // Access the created user directly from the signup result
