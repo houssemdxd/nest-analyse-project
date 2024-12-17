@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { Get, Body, Controller, Post, Put, Req, UseGuards, Query } from '@nestjs/common';
+import { Get, Body, Controller, Post, Put, Req, UseGuards, Query, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dtos/signup.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -154,6 +154,10 @@ export class AuthController {
 
   }
 
-
+  @Put('user-banne/:userId')
+  async setIsBanne(@Param('userId') userId: string){
+    console.log("--------------ban user");
+    return await this.authService.setIsBanned(userId);
+  }
 
 }

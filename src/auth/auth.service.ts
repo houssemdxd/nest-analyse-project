@@ -51,6 +51,10 @@ export class AuthService {
       throw new BadRequestException('Email already in use');
     }
 
+    var isBanned = false;
+    if (role == "radiologist") {
+      isBanned = true;
+    }
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -61,8 +65,9 @@ export class AuthService {
       email,
       password: hashedPassword,
       roleId: roleO._id,
+      isBanned: isBanned,
     });
-    
+
     const populatedUser = await createdUser.populate('roleId');
 
 
@@ -80,6 +85,23 @@ export class AuthService {
     };
   }
 
+  async setIsBanned(userId: String) {
+    console.log("-------1");
+    const user = await this.UserModel.findById(userId).exec();
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    console.log("-------2",user);
+
+    user.isBanned = !user.isBanned;
+    console.log("-------3");
+    await this.UserModel.updateOne(
+      { _id: userId },
+      { $set: { isBanned: user.isBanned } }
+    );
+
+    return { success: true, isBanned: user.isBanned };
+  }
   async confirmEmail(token: string) {
     try {
       const secret = process.env.JWT_SECRET;
@@ -112,6 +134,9 @@ export class AuthService {
     }
     if (!user.isVerfied) {
       throw new UnauthorizedException('You most confirm your email');
+    }
+    if (user.isBanned&&user.isBanned!=null) {
+      throw new UnauthorizedException('You most be banned!');
     }
 
     // Generate JWT tokens
@@ -195,7 +220,7 @@ export class AuthService {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
-      console.log("the otp code is",otp)
+      console.log("the otp code is", otp)
       //const resetToken = nanoi  d(64);
       await this.OTPModel.create({
         otp: otp,
@@ -341,7 +366,7 @@ export class AuthService {
   async findOrCreateUser(profile: any) {
     const email = profile.emails[0].value;
     const name = profile.displayName;
-    
+
     // Check if the user already exists
     let user = await this.findUserByEmail(email);
     if (!user) {
@@ -350,7 +375,7 @@ export class AuthService {
         email,
         name,
         password: '', // Leave main password empty as it's handled by Google
-        role:"patient",
+        role: "patient",
       };
       const signupResult = await this.signup(newUser);
       user = signupResult.data; // Access the created user directly from the signup result

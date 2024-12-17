@@ -39,6 +39,8 @@ export class User extends Document {
   @Prop({ default: false })
   isVerfied: Boolean;
 
+  @Prop({ default: false })
+  isBanned: Boolean;
 
 }
 
