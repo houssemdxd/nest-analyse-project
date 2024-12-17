@@ -46,7 +46,7 @@ export class PostService {
     const { title, imageId, subreddit,content,userid } = createPostDto;
   
     // Validate the `imageId`
-    if (!Types.ObjectId.isValid(imageId)) {
+    /*if (!Types.ObjectId.isValid(imageId)) {
       throw new Error('Invalid imageId');
     }
   
@@ -54,7 +54,7 @@ export class PostService {
     const image = await this.imageModel.findById(imageId);
     if (!image) {
       throw new Error('Image not found');
-    }
+    }*/
   
     // Create a new post with a reference to the existing image
     const newPost = new this.postModel({
@@ -63,7 +63,8 @@ export class PostService {
       timeAgo: '7h ago', // Hardcoded
       subreddit,
       user: userid, // Replace with actual user ID
-      image: image._id, // Reference to the image
+      image:imageId,
+      //image: image._id, // Reference to the image
       profileImage: 'image1', // Hardcoded
       Content: content, // Example content
     });

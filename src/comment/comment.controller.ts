@@ -6,12 +6,12 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 @Controller('comment')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
-
+  //create cmnt
   @Post()
   create(@Body() createCommentDto: CreateCommentDto) {
     return this.commentService.createComment(createCommentDto);
   }
-
+  //get cmnt by post
   @Post("getcommentforpost")
   getAllCommentForApost(@Body("post_id") post_id:string ) {
     return this.commentService.getCommentsByPostId(post_id);

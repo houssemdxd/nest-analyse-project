@@ -1,20 +1,20 @@
-import { IsString } from "class-validator";
+    import { IsString } from "class-validator";
 
-export class CreateImageDto {
+    export class CreateImageDto {
 
 
 
-    @IsString()
+        @IsString()
 
-    title: string; // Optional: name of the discussion
-    @IsString()
+        title: string; // Optional: name of the discussion
+        @IsString()
 
-    imageName: string; // Optional: name of the discussion
-  
+        imageName: string; // Optional: name of the discussion
     
-    @IsString()
-    userId:string
+        
+        @IsString()
+        userId:string
 
 
 
-}
+    }

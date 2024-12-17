@@ -57,6 +57,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'login successfully .' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async login(@Body() credentials: LoginDto) {
+    console.log("login ;;;;");
     return this.authService.login(credentials);
   }
 

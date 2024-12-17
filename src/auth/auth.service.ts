@@ -40,9 +40,12 @@ export class AuthService {
   async signup(signupData: SignupDto) {
     const { email, password, name, role } = signupData;
     //const { email, password, name, roleId } = signupData;
-
-    const roleO ="radiologist";
+    const roleO = await this.rolesService.getRoleByName(role);
+    //const roleO = await this.rolesService.getRoleByName("patient");
+    //const roleO ="radiologist";
     // Check if email is in use
+
+
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
@@ -57,8 +60,9 @@ export class AuthService {
       name,
       email,
       password: hashedPassword,
-      //roleId: roleO._id,
+      roleId: roleO._id,
     });
+    
     const populatedUser = await createdUser.populate('roleId');
 
 
@@ -114,7 +118,7 @@ export class AuthService {
     const tokens = await this.generateUserTokens(user._id);
 
 
-    //const populatedUser = await user.populate('roleId');
+    const populatedUser = await user.populate('roleId');
 
     //onsole.log(user.roleId.name);
     // Return response with statusCode and user information
@@ -123,7 +127,7 @@ export class AuthService {
       userId: user._id,
       userName: user.name,
       userEmail: user.email,
-      //userRole: populatedUser.roleId.name,
+      userRole: populatedUser.roleId.name,
 
       ...tokens,
     };

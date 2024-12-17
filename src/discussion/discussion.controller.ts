@@ -13,8 +13,10 @@ export class DiscussionController {
     @Param('userId') userId: string,
     @Body('message') initialMessage: string,
   ) {
-    console.log("this  function")
-    return this.discussionService.createDiscussion(userId, initialMessage);
+    console.log("___________________________________________---______" + " : "+ userId);
+    var res = await this.discussionService.createDiscussion(userId, initialMessage);
+    console.log(res.title);
+    return res;
   }
 
   // Send a message in an existing discussion and get the assistant's response
@@ -38,6 +40,7 @@ export class DiscussionController {
 
   @Get(':userId')
   async getAllDiscussions(@Param('userId') userId: string) {
+    console.log("in get all discussions now");
     return this.discussionService.getAllDiscussions(userId);
-  }
+  } 
 }
