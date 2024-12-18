@@ -16,6 +16,7 @@ import { userInfo } from 'os';
 import { log } from 'console';
 import { UpdateUserIndoDto } from './dtos/update-userInfo.dto'
 import { ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { User } from 'src/user/entities/user.entity';
 
 
 interface AuthRequest extends Request {
@@ -156,9 +157,19 @@ export class AuthController {
   }
 
   @Put('user-banne/:userId')
-  async setIsBanne(@Param('userId') userId: string){
+  async setIsBanne(@Param('userId') userId: string) {
     console.log("--------------ban user");
     return await this.authService.setIsBanned(userId);
   }
+  
+
+  @Get('banned')
+  @ApiResponse({ status: 200, description: 'Successfully fetched users with the specified role.' })
+  @ApiResponse({ status: 500, description: 'Failed to fetch users with the specified role.' })
+  async getBannedUsers(): Promise<User[]> {
+    console.log('Received request to fetch users with roleId: 676216a6246391c9b1bf1ef2');
+    return this.authService.getUsersByRoleId();
+  }
+  
 
 }

@@ -424,5 +424,17 @@ console.log(populatedUser)
       throw error;
     }
   }
-
+  async getUsersByRoleId(): Promise<User[]> {
+    try {
+      // Find all users with the specific roleId
+      const users = await this.UserModel.find({
+        roleId: '676216a6246391c9b1bf1ef2'  // Specific role ID
+      }).exec();
+  
+      return users;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch users with the specified role');
+    }
+  }
+  
 }
