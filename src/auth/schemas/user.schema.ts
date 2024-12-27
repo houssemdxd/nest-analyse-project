@@ -44,6 +44,15 @@ export class User extends Document {
   @Prop({ default: false })
   isBanned: Boolean;
 
+  // Liste des radiologistes associés pour un patient
+  @Prop({ type: [{ type: SchemaTypes.ObjectId, ref: 'User' }], default: [] })
+  radiologists: Types.ObjectId[];
+
+  // Liste des patients associés pour un radiologiste
+  @Prop({ type: [{ type: SchemaTypes.ObjectId, ref: 'User' }], default: [] })
+  patients: Types.ObjectId[];
+
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -146,7 +146,7 @@ export class RecommadationService {
         try {
           console.log(user.roleId)
           var idrole = String(user.roleId)
-          if(idrole == "6760acdd75a123abae7f2dc3")
+          if(idrole == "676216b5246391c9b1bf1ef5")
           {
           console.log(`Generating recommendation for user: (ID: ${user._id})`);
 
@@ -222,7 +222,7 @@ export class RecommadationService {
 
 
   
-  // @Cron('*/5 * * * * *')
+   //@Cron('*/5 * * * * *')
   //@Cron('0 0 * * *')
   async generateRecommendationsJob(): Promise<void> {
     console.log('Running scheduled job: Generating recommendations for all users...');

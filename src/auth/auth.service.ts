@@ -24,12 +24,14 @@ import { OTP } from './schemas/o-t-p.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
 import * as jwt from 'jsonwebtoken';
+import { Role } from 'src/roles/schemas/role.schema';
 
 @Injectable()
 export class AuthService {
 
   constructor(
     @InjectModel(User.name) private UserModel: Model<User>,
+
     @InjectModel(RefreshToken.name)
     private RefreshTokenModel: Model<RefreshToken>,
     @InjectModel(OTP.name)
@@ -436,5 +438,79 @@ console.log(populatedUser)
       throw new InternalServerErrorException('Failed to fetch users with the specified role');
     }
   }
+ 
+
+  async associatePatientWithRadiologist(patientId: string, radiologistId: string) {
+    const patient = await this.UserModel.findById(patientId).populate('roleId');
+    const radiologist = await this.UserModel.findById(radiologistId).populate('roleId');
+  
+    if (!patient || !radiologist) {
+      throw new NotFoundException('Patient or Radiologist not found');
+    }
+  
+    // Vérifier si `roleId` a bien été peuplé
+    if (!patient.roleId || !radiologist.roleId) {
+      throw new BadRequestException('Role information is missing');
+    }
+  
+    if (radiologist.roleId.name !== 'radiologist' || patient.roleId.name !== 'patient') {
+      console.log('Radiologist role:', radiologist.roleId.name);
+      console.log('Patient role:', patient.roleId.name);
+  
+      throw new BadRequestException('Invalid roles for association');
+    }
+  
+    // Convertir les identifiants en ObjectId avant de les utiliser
+    const radiologistObjectId = new Types.ObjectId(radiologistId);
+    const patientObjectId = new Types.ObjectId(patientId);
+  
+    // Ajouter le radiologiste au patient
+    if (!patient.radiologists.includes(radiologistObjectId)) {
+      patient.radiologists.push(radiologistObjectId);
+    }
+  
+    // Ajouter le patient au radiologiste
+    if (!radiologist.patients.includes(patientObjectId)) {
+      radiologist.patients.push(patientObjectId);
+    }
+  
+    await patient.save();
+    await radiologist.save();
+  
+    return {
+      message: 'Patient and Radiologist successfully associated',
+      patient,
+      radiologist,
+    };
+  }
+  
+
+  async getPatientsByRadiologist(radiologistId: string) {
+    try {
+      // Récupérer le radiologiste avec ses patients associés
+      const radiologist = await this.UserModel.findById(radiologistId).populate({
+        path: 'patients', // Indiquer que l'on veut peupler les patients associés
+        select: 'email name',  // Sélectionner uniquement les emails des patients
+      }).exec();
+  
+      if (!radiologist) {
+        throw new NotFoundException('Radiologist not found');
+      }
+  
+      // Si aucun patient n'est trouvé pour ce radiologiste
+      if (!radiologist.patients || radiologist.patients.length === 0) {
+        throw new NotFoundException('No patients found for this radiologist');
+      }
+  
+      // Retourner les patients avec leurs emails
+      return {
+        message: 'Patients retrieved successfully',
+        data: radiologist.patients,
+      };
+    } catch (error) {
+      throw new BadRequestException(`Error fetching patients: ${error.message}`);
+    }
+  }
+  
   
 }

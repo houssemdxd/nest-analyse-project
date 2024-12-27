@@ -14,17 +14,18 @@ export class ImageService {
   ) { }
 
 
-  async createImage(data: { title: string; imageName: string; userId: string }): Promise<Image> {
+  async createImage(data: { title: string; imageName: string; userId: string ;  patientId: string;}): Promise<Image> {
     try {
       // Ensure userId is passed and is a valid ObjectId
-      if (!data.userId) {
-        throw new Error('User ID is required');
+      if (!data.userId || !data.patientId) {
+        throw new Error('User ID and Patient ID are required');
       }
-
       const image = new this.ImageModel({
         title: data.title,
         imageName: data.imageName,
         user: new Types.ObjectId(data.userId), // Convert to ObjectId
+        patient: new Types.ObjectId(data.patientId), // Patient
+
       });
 
       return await image.save();
@@ -52,6 +53,7 @@ export class ImageService {
 
   async findImagesByUserId(userId: string): Promise<Image[]> {
     try {
+      
       // Find all images where the 'user' field matches the given userId
       const images = await this.ImageModel.find({ user: userId }).exec();
       return images;
@@ -70,6 +72,36 @@ export class ImageService {
       const images = await this.ImageModel.find({ user: userId }).exec();
       return images;
       
+    } catch (error) {
+      throw new Error(`Error fetching images: ${error.message}`);
+    }
+  }
+  /*
+  async getAllImagesByUserAndPatient(userId: string, patientId: string): Promise<Image[]> {
+    try {
+      const images = await this.ImageModel.find({ 
+        user: userId, 
+        patient: patientId 
+      }).exec();
+      return images;
+    } catch (error) {
+      throw new Error(`Error fetching images: ${error.message}`);
+    }
+  }
+  */
+  async getAllImagesByUserAndPatient(userId: string, patientId: string): Promise<Image[]> {
+    try {
+      // Ensure that both userId and patientId are valid and passed correctly
+      if (!userId || !patientId) {
+        throw new Error('userId and patientId must be provided');
+      }
+  
+      const images = await this.ImageModel.find({
+        user: userId,
+        patient: patientId,
+      }).exec();
+  
+      return images;
     } catch (error) {
       throw new Error(`Error fetching images: ${error.message}`);
     }

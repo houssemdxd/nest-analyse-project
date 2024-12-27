@@ -16,6 +16,10 @@ export class Image extends Document {
   @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId; // Reference to the User schema
 
+
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
+  patient: Types.ObjectId; // Patient associated with the image
+
 }
 
 export const ImageSchema = SchemaFactory.createForClass(Image);

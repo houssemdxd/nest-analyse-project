@@ -1,12 +1,8 @@
 // services/qr.service.ts
 import { Injectable } from '@nestjs/common';
 import * as QRCode from 'qrcode';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 //import { OCRDataSchema } from 'src/ocr/entities/ocr.entity';
 //import { OCRData } from 'src/ocr/entities/ocr.entity';
-import { OCRData } from '../ocr/OCRData';
-import { OcrModule } from 'src/ocr/ocr.module';
 
 @Injectable()
 export class QrService {

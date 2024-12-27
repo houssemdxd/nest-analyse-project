@@ -25,6 +25,7 @@ import { TumorDetectionService } from './tumor_detection/tumor.detection.service
 import { TumorDetectionModule } from './tumor_detection/tumor.detection.module';
 import { HttpModule } from '@nestjs/axios';
 import { CliniqueModule } from './clinique/clinique.module';
+import { QrCodeModule } from './qr-code/qr-code.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { CliniqueModule } from './clinique/clinique.module';
     CommentModule,
     TumorDetectionModule,
     CliniqueModule,
+    QrCodeModule,
 
 
   ],

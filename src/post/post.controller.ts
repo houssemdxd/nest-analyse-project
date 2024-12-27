@@ -21,6 +21,13 @@ export class PostController {
     return this.postService.getAllPosts(userId);
   }
 
+
+  @Post('user/posts')
+  async getPostsByUser(@Body('userId') userId: string) {
+    console.log('Fetching posts for user with ID:', userId);
+    return this.postService.getPostsByUserId(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postService.findOne(+id);

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { Get, Body, Controller, Post, Put, Req, UseGuards, Query, Param } from '@nestjs/common';
+import { Get, Body, Controller, Post, Put, Req, UseGuards, Query, Param, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dtos/signup.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -171,5 +171,33 @@ export class AuthController {
     return this.authService.getUsersByRoleId();
   }
   
+
+
+  @Post('associate')
+  async associatePatientWithRadiologist(
+    @Body('patientId') patientId: string,
+    @Body('radiologistId') radiologistId: string,
+  ) {
+    console.log("associated sahit")
+    return this.authService.associatePatientWithRadiologist(patientId, radiologistId);
+  }
+
+  @Get('getPatientsByRadiologist')
+  async getPatientsByRadiologist(@Query('radiologistId') radiologistId: string) {
+    try {
+      // Appeler la méthode du service pour récupérer les patients
+      const result = await this.authService.getPatientsByRadiologist(radiologistId);
+      return result;
+    } catch (error) {
+      // Gérer les erreurs de manière appropriée
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new BadRequestException(`Error fetching patients: ${error.message}`);
+      }
+    }
+  }
+
+
 
 }

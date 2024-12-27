@@ -60,7 +60,7 @@ export class PostService {
     const newPost = new this.postModel({
       title,
       upvotes: 0, // Default
-      timeAgo: '7h ago', // Hardcoded
+      timeAgo: new Date(), // Capture the current system time
       subreddit,
       user: userid, // Replace with actual user ID
       image:imageId,
@@ -81,7 +81,7 @@ export class PostService {
 
   async getAllPosts(userId: string) {
     // Fetch all posts without populating `user` and `image` fields
-    const posts = await this.postModel.find();
+    const posts = await this.postModel.find().sort({ timeAgo: -1 });
   
     // Convert `userId` to an ObjectId
     const userObjectId = new Types.ObjectId(userId);
@@ -96,12 +96,14 @@ export class PostService {
   
       // Check if the user has upvoted the post
       const statepost = post.upvotedUsers?.includes(userObjectId);
+      const timeElapsed = this.calculateTimeElapsed(new Date(post.timeAgo));
+
   
       return {
         id: post._id,
         title: post.title,
         upvotes: post.upvotes,
-        timeAgo: post.timeAgo,
+        timeAgo: timeElapsed, // Replace with formatted time elapsed
         subreddit: post.subreddit,
         Content: post.Content,
         author: user ? user.name : null, // Access the 'name' field from the fetched user
@@ -113,10 +115,64 @@ export class PostService {
   
     return result;
   }
-  
+
+  async getPostsByUserId(userId: string) {
+    // Validate the userId
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new Error('Invalid userId');
+    }
+
+    // Fetch posts by the specific user
+    const posts = await this.postModel.find({ user: userId }).sort({ timeAgo: -1 });
+    const userObjectId = new Types.ObjectId(userId);
+
+    // Map through the posts and populate the user and image details
+    const result = await Promise.all(posts.map(async post => {
+      const user = await this.UserModel.findById(post.user);
+      const image = await this.imageModel.findById(post.image);
+      const statepost = post.upvotedUsers?.includes(userObjectId);
 
 
+      return {
+        id: post._id,
+        title: post.title,
+        upvotes: post.upvotes,
+        timeAgo: this.calculateTimeElapsed(new Date(post.timeAgo)),
+        subreddit: post.subreddit,
+        Content: post.Content,
+        author: user ? user.name : null,
+        image: image ? image.imageName : null,
+        profileImage: "image1",
+        statepost: !!statepost, 
 
+      };
+    }));
+
+    return result;
+  }
+
+  public calculateTimeElapsed(postTime: Date): string {
+    const now = new Date();
+    const diffInMs = now.getTime() - new Date(postTime).getTime();
+
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    }
+
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks} week${diffInWeeks !== 1 ? 's' : ''} ago`;
+  }
 
 
 

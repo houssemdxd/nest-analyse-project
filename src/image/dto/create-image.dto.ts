@@ -13,8 +13,11 @@
     
         
         @IsString()
-        userId:string
+        userId:string;
 
+@IsString()
+
+patientId: string; 
 
 
     }
