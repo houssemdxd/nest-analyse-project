@@ -10,8 +10,6 @@ import { Role, RoleSchema } from 'src/roles/schemas/role.schema';
       MongooseModule.forFeature([
         { name: User.name, schema: UserSchema },
         { name: Role.name, schema: RoleSchema },
-              
-        
       ])],
   controllers: [QrCodeController],
   providers: [QrCodeService],
